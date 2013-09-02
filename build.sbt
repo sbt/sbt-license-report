@@ -5,3 +5,5 @@ name := "sbt-license-report"
 sbtPlugin := true
 
 publishMavenStyle := false
+
+scalariformSettings
