@@ -24,6 +24,21 @@ object LicenseReport {
     }
   }
 
+  // Dumps the license report in csv form.
+  def dumpCsv(report: LicenseReport, println: Any => Unit): Unit = {
+    def dumpLine(cat: LicenseCategory, license: License, dep: String): Unit = {
+      println("%s; %s; %s".format(cat.name, license.name, dep))
+    }
+    println("Cateogory;License;Dependency")
+    val categories = report.licenses.groupBy(LicenseCategory.find)
+    for {
+      (cat, licenses) <- categories
+      license <- licenses
+      dep <- license.deps
+    } dumpLine(cat, license, dep)
+  }
+
+  // Dumps a tree-form of the license report.
   def dumpReport(report: LicenseReport, println: Any => Unit): Unit = {
     // License grouping heuristics
     val categories = report.licenses.groupBy(LicenseCategory.find)
