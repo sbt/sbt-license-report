@@ -6,7 +6,7 @@ case class LicenseCategory(name: String, viral: Boolean, synonyms: Seq[String] =
   def unapply(license: License): Boolean = {
     val names = name +: synonyms
     names exists { n =>
-      license.name.toLowerCase contains n.toLowerCase
+      (license.name.toLowerCase contains n.toLowerCase)
     }
   }
 
@@ -25,7 +25,7 @@ object LicenseCategory {
   val GPL = LicenseCategory("GPL", true, Seq("general public license"))
   val Mozilla = LicenseCategory("Mozilla", false, Seq("mpl"))
   val MIT = LicenseCategory("MIT", false)
-  val CommonPublic = LicenseCategory("Common Public License", false)
+  val CommonPublic = LicenseCategory("Common Public License", false, Seq("cpl", "common public"))
   val PublicDomain = LicenseCategory("Public Domain", false)
   val NoneSpecified = LicenseCategory("none specified", true)
 
@@ -33,5 +33,8 @@ object LicenseCategory {
     Seq(BSD, Apache, LGPL, GPLClasspath, GPL, Mozilla, MIT, PublicDomain, CommonPublic, NoneSpecified)
 
   def find(l: License): LicenseCategory =
-    all.find(_.unapply(l)).getOrElse(NoneSpecified)
+    all.find(_.unapply(l)).getOrElse {
+      System.err.println("Unable to find license for: " + l)
+      NoneSpecified
+    }
 }

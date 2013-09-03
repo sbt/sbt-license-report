@@ -58,6 +58,22 @@ object LicenseReport {
     println("")
   }
 
+  def getArtifactNames(dep: IvyNode): Seq[String] = {
+    val versionStringOpt =
+      for {
+        desc <- Option(dep.getDescriptor)
+        v <- Option(desc.getRevision)
+      } yield "#" + v
+    val v = versionStringOpt.getOrElse("")
+    val groupOpt =
+      for {
+        desc <- Option(dep.getDescriptor)
+        m <- Option(dep.getModuleId)
+      } yield m.getOrganisation + " # "
+    val g = groupOpt.getOrElse("")
+    dep.getAllArtifacts.map(g + _.getName + v)
+  }
+
   def makeReport(module: IvySbt#Module, log: Logger): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
@@ -68,8 +84,8 @@ object LicenseReport {
         dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
         if dep != null
         desc <- Option(dep.getDescriptor).toSeq
-        license <- Option(desc.getLicenses) getOrElse Array.empty
-      } yield License(license.getName, license.getUrl)(dep.getAllArtifacts.map(_.getName))
+        license <- Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
+      } yield License(license.getName, license.getUrl)(getArtifactNames(dep))
 
     val grouped = for {
       (name, licenses) <- licenses.groupBy(_.name)
