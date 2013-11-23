@@ -97,7 +97,7 @@ object LicenseReport {
     val licenses =
       for {
         dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
-        if dep != null
+        if dep != null && dep.getRootModuleConfigurations.contains("runtime")
         desc <- Option(dep.getDescriptor).toSeq
         license <- Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
       } yield License(license.getName, license.getUrl)(getArtifactNames(dep))
