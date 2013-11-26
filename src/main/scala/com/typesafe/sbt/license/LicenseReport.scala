@@ -89,7 +89,7 @@ object LicenseReport {
     dep.getAllArtifacts.map(g + _.getName + v)
   }
 
-  def makeReport(module: IvySbt#Module, log: Logger): LicenseReport = {
+  def makeReport(module: IvySbt#Module, configs: Seq[String], log: Logger): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
     import collection.JavaConverters._
@@ -98,6 +98,7 @@ object LicenseReport {
       for {
         dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
         if dep != null
+        if (configs.isEmpty) || (configs.exists(dep.getRootModuleConfigurations.contains))
         desc <- Option(dep.getDescriptor).toSeq
         license <- Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
       } yield License(license.getName, license.getUrl)(getArtifactNames(dep))

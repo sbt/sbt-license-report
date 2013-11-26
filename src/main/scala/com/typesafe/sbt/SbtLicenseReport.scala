@@ -8,11 +8,12 @@ object SbtLicenseReport extends Plugin {
   val dumpLicenseReport = TaskKey[Unit]("dumpLicenseReport", "Displays a report of used licenses in a project.")
   val licenseReportCsv = SettingKey[File]("licenseReportCsv", "The location where we'll write the license report.")
   val dumpLicenseReportCsv = TaskKey[File]("dumpLicenseReportCsv", "Dumps a csv file of the license report.")
+  val licenseConfigurations = SettingKey[Seq[String]]("licenseConfigurations", "The configurations we wish a report of.")
 
   override def projectSettings: Seq[Setting[_]] =
     Seq(
-      makeLicenseReport <<= (update, ivyModule, streams) map { (_, module, s) =>
-        license.LicenseReport.makeReport(module, s.log)
+      makeLicenseReport <<= (update, ivyModule, licenseConfigurations, streams) map { (_, module, configs, s) =>
+        license.LicenseReport.makeReport(module, configs, s.log)
       },
       licenseReportCsv <<= target apply (_ / "licenseReport.csv"),
       dumpLicenseReport <<= makeLicenseReport map { report =>
@@ -25,5 +26,7 @@ object SbtLicenseReport extends Plugin {
           license.LicenseReport.dumpCsv(report, println)
         }
         file
-      })
+      },
+      licenseConfigurations := Seq.empty
+    )
 }
