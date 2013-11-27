@@ -92,22 +92,31 @@ object LicenseReport {
   def makeReport(module: IvySbt#Module, configs: Seq[String], log: Logger): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
+    makeReportImpl(report, configs, log)
+  }
+
+  def getLicenses(report: ResolveReport, configs: Seq[String] = Seq.empty): Seq[License] = {
     import collection.JavaConverters._
+    for {
+      dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
+      if dep != null
+      if (configs.isEmpty) || (configs.exists(dep.getRootModuleConfigurations.contains))
+      desc <- Option(dep.getDescriptor).toSeq
+      license <- Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
+    } yield License(license.getName, license.getUrl)(getArtifactNames(dep))
+  }
 
-    val licenses =
-      for {
-        dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
-        if dep != null
-        if (configs.isEmpty) || (configs.exists(dep.getRootModuleConfigurations.contains))
-        desc <- Option(dep.getDescriptor).toSeq
-        license <- Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
-      } yield License(license.getName, license.getUrl)(getArtifactNames(dep))
-
-    val grouped = for {
+  def groupLicenses(licenses: Seq[License]): Iterable[License] = {
+    for {
       (name, licenses) <- licenses.groupBy(_.name)
       l <- licenses.headOption.toSeq
     } yield License(l.name, l.url)(licenses flatMap (_.deps) distinct)
+  }
 
+  def makeReportImpl(report: ResolveReport, configs: Seq[String], log: Logger): LicenseReport = {
+    import collection.JavaConverters._
+    val licenses = getLicenses(report, configs)
+    val grouped = groupLicenses(licenses)
     LicenseReport(grouped.toSeq, report)
   }
 
