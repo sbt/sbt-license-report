@@ -2,19 +2,17 @@
 
 This plugin will allow you to report the licenses used in your projects.
 
-
 ## Installation
 
 Create a file in your project called `project/license.sbt` with the following contents:
 
-  addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "0.1")
+    addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "0.1")
 
 ## Usage
 
 The license report can either dump its report directly via the sbt console or into files that you can read later:
 
-  > dumpLicenseReport
-
+    > dumpLicenseReport
 
 This dumps a report of all the licenses used in a project, with an attempt to organize them based on known 'viral' licenses and not.  If a viral license is used,
 you must ensure you use a compatible license for your own project and notify downstream consumers.  Here's an example from the [Akka project](http://github.com/akka/akka)
@@ -47,29 +45,24 @@ you must ensure you use a compatible license for your own project and notify dow
     
     [success] Total time: 0 s, completed Dec 3, 2013 10:43:17 AM
 
-
-
 The other option is:
 
-  > dumpLicenseReportCsv
+    > dumpLicenseReportCsv
 
 This dumps csv files that report license usage for easier consumption in Excell/Spreadsheets.
-
 
 # Releasing
 
 A four step process
 
-
-  > git tag -u <pgp key> v<version>
-  > sbt
-  sbt> publishSigned
-  sbt> set scalaVersion in Global := "2.9.2"
-  sbt> set sbtVersion in Global := "0.12.4"
-  sbt> publishSigned
+    > git tag -u <pgp key> v<version>
+    > sbt
+    sbt> publishSigned
+    sbt> set scalaVersion in Global := "2.9.2"
+    sbt> set sbtVersion in Global := "0.12.4"
+    sbt> publishSigned
 
 
 # License
 
 This software is under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
-
