@@ -7,3 +7,7 @@ sbtPlugin := true
 publishMavenStyle := false
 
 scalariformSettings
+
+versionWithGit
+
+git.baseVersion := "1.0"
