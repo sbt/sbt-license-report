@@ -17,3 +17,12 @@ licenseReportNotes := licenseReportNotes.value orElse {
 licenseOverrides := licenseOverrides.value orElse {
   case DepModuleInfo("com.typesafe.play", _, _) => LicenseInfo(LicenseCategory.Apache, "Apache 2", "http://www.apache.org/licenses/LICENSE-2.0")
 }
+
+licenseReportConfigurations +=
+  LicenseReportConfiguration(
+   "test-config",
+   Seq(MarkDown),
+   language => language.header1("Testing the configuration"),
+   dep => Option("Default notes"),
+   category => category == LicenseCategory.BSD,
+   licenseReportDir.value)

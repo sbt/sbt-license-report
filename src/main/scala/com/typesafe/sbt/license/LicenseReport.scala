@@ -21,13 +21,6 @@ case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
                               |""".stripMargin
 }
 
-case class LicenseReportConfiguration(
-  title: String,
-  languages: Seq[TargetLanguage],
-  makeHeader: TargetLanguage => String,
-  notes: DepModuleInfo => Option[String],
-  reportDir: File)
-
 object LicenseReport {
 
   def withPrintableFile(file: File)(f: (Any => Unit) => Unit): Unit = {
@@ -43,7 +36,7 @@ object LicenseReport {
 
   def dumpLicenseReport(report: LicenseReport, config: LicenseReportConfiguration): Unit = {
     import config._
-    val ordered = report.licenses sortWith {
+    val ordered = report.licenses.filter(l => licenseFilter(l.license.category)) sortWith {
       case (l, r) =>
         if (l.license.category != r.license.category) l.license.category.name < r.license.category.name
         else {
@@ -55,11 +48,10 @@ object LicenseReport {
     }
     // TODO - Make one of these for every configuration?
     for (language <- languages) {
-      val reportFile = new File(config.reportDir, s"license-report.${language.ext}")
+      val reportFile = new File(config.reportDir, s"${title}.${language.ext}")
       withPrintableFile(reportFile) { print =>
         print(language.documentStart(title))
         print(makeHeader(language))
-        print(language.header1("LicenseReport"))
         print(language.tableHeader("Category", "License", "Dependency", "Notes"))
         for (dep <- ordered) {
           val licenseLink = language.createHyperLink(dep.license.url, dep.license.name)
