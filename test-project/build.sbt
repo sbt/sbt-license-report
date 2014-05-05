@@ -1,5 +1,5 @@
-import com.typesafe.sbt.license.DepModuleInfo
-import com.typesafe.sbt.SbtLicenseReport.autoImport.licenseReportNotes
+import com.typesafe.sbt.license._
+import com.typesafe.sbt.SbtLicenseReport.autoImport._
 
 libraryDependencies += "com.typesafe.play" %% "play" % "2.2.2"
 
@@ -12,4 +12,8 @@ scalaVersion := "2.10.4"
 
 licenseReportNotes := licenseReportNotes.value orElse {
   case DepModuleInfo(org, _, _) if org contains "com.typesafe" => "From Typesafe Reactive Platform."
+}
+
+licenseOverrides := licenseOverrides.value orElse {
+  case DepModuleInfo("com.typesafe.play", _, _) => LicenseInfo(LicenseCategory.Apache, "Apache 2", "http://www.apache.org/licenses/LICENSE-2.0")
 }

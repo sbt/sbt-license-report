@@ -62,9 +62,10 @@ object LicenseReport {
         print(language.header1("LicenseReport"))
         print(language.tableHeader("Category", "License", "Dependency", "Notes"))
         for (dep <- ordered) {
+          val licenseLink = language.createHyperLink(dep.license.url, dep.license.name)
           print(language.tableRow(
             dep.license.category.name,
-            dep.license.name,
+            licenseLink,
             dep.module.toString,
             notes(dep.module) getOrElse ""))
         }
@@ -78,10 +79,10 @@ object LicenseReport {
     DepModuleInfo(dep.getModuleId.getOrganisation, dep.getModuleId.getName, dep.getModuleRevision.getId.getRevision)
   }
 
-  def makeReport(module: IvySbt#Module, configs: Set[String], licenseSelection: Seq[LicenseCategory], log: Logger): LicenseReport = {
+  def makeReport(module: IvySbt#Module, configs: Set[String], licenseSelection: Seq[LicenseCategory], overrides: DepModuleInfo => Option[LicenseInfo], log: Logger): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
-    makeReportImpl(report, configs, licenseSelection, log)
+    makeReportImpl(report, configs, licenseSelection, overrides, log)
   }
   /**
    * given a set of categories and an array of ivy-resolved licsenses, pick the first one from our list, or
@@ -116,9 +117,14 @@ object LicenseReport {
     } yield report
   }
 
-  def makeReportImpl(report: ResolveReport, configs: Set[String], categories: Seq[LicenseCategory], log: Logger): LicenseReport = {
+  def makeReportImpl(report: ResolveReport, configs: Set[String], categories: Seq[LicenseCategory], overrides: DepModuleInfo => Option[LicenseInfo], log: Logger): LicenseReport = {
     import collection.JavaConverters._
-    val licenses = getLicenses(report, configs, categories)
+    val licenses = getLicenses(report, configs, categories) map { l =>
+      overrides(l.module) match {
+        case Some(o) => l.copy(license = o)
+        case _ => l
+      }
+    }
     // TODO - Filter for a real report...
     LicenseReport(licenses, report)
   }

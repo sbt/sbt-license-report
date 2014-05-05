@@ -21,6 +21,7 @@ object SbtLicenseReport extends AutoPlugin {
     val licenseReportMakeHeader = settingKey[TargetLanguage => String]("A mechanism of generating the header for the license report file.")
     val licenseReportTypes = settingKey[Seq[TargetLanguage]]("The license report files to generate.")
     val licenseReportNotes = settingKey[PartialFunction[DepModuleInfo, String]]("A partial functoin that will obtain license report notes based on module.")
+    val licenseOverrides = settingKey[PartialFunction[DepModuleInfo, LicenseInfo]]("A list of license overrides for artifacts with bad infomration on maven.")
   }
   import autoImport._
   
@@ -31,9 +32,11 @@ object SbtLicenseReport extends AutoPlugin {
       licenseReportTitle := s"License Report for - ${projectID.value}",
       // Here we use an empty partial function
       licenseReportNotes := PartialFunction.empty,
+      licenseOverrides := PartialFunction.empty,
       makeLicenseReport := {
         val ignore = update.value
-        license.LicenseReport.makeReport(ivyModule.value, licenseConfigurations.value, licenseSelection.value, streams.value.log)
+        val overrides = licenseOverrides.value.lift
+        license.LicenseReport.makeReport(ivyModule.value, licenseConfigurations.value, licenseSelection.value, overrides, streams.value.log)
       },
       // TODO - A default header.
       licenseReportMakeHeader := (language => ""),
