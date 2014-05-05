@@ -2,39 +2,36 @@ package com.typesafe.sbt
 package license
 
 // TODO - What do we mean by viral?
-case class LicenseCategory(name: String, viral: Boolean, synonyms: Seq[String] = Nil) {
-  def unapply(license: License): Boolean = {
+case class LicenseCategory(name: String, synonyms: Seq[String] = Nil) {
+  def unapply(license: String): Boolean = {
     val names = name +: synonyms
     names exists { n =>
-      (license.name.toLowerCase contains n.toLowerCase)
+      (license.toLowerCase contains n.toLowerCase)
     }
   }
 
 }
 object LicenseCategory {
-  val BSD = LicenseCategory("BSD", false)
-  val Apache = LicenseCategory("Apache", false, Seq("asf"))
-  val LGPL = LicenseCategory("LGPL", false, Seq("lesser general public license"))
-  object GPLClasspath extends LicenseCategory("GPL with Classpath Extension", false) {
-    override def unapply(license: License): Boolean = {
-      val name = license.name.toLowerCase
+  val BSD = LicenseCategory("BSD")
+  val Apache = LicenseCategory("Apache", Seq("asf"))
+  val LGPL = LicenseCategory("LGPL", Seq("lesser general public license"))
+  object GPLClasspath extends LicenseCategory("GPL with Classpath Extension") {
+    override def unapply(license: String): Boolean = {
+      val name = license.toLowerCase
       ((name.contains("gpl") || name.contains("general public license")) &&
         name.contains("classpath"))
     }
   }
-  val GPL = LicenseCategory("GPL", true, Seq("general public license"))
-  val Mozilla = LicenseCategory("Mozilla", false, Seq("mpl"))
-  val MIT = LicenseCategory("MIT", false)
-  val CommonPublic = LicenseCategory("Common Public License", false, Seq("cpl", "common public"))
-  val PublicDomain = LicenseCategory("Public Domain", false)
-  val NoneSpecified = LicenseCategory("none specified", true)
+  val GPL = LicenseCategory("GPL", Seq("general public license"))
+  val Mozilla = LicenseCategory("Mozilla", Seq("mpl"))
+  val MIT = LicenseCategory("MIT")
+  val CommonPublic = LicenseCategory("Common Public License", Seq("cpl", "common public"))
+  val PublicDomain = LicenseCategory("Public Domain")
+  val NoneSpecified = LicenseCategory("none specified")
 
   val all: Seq[LicenseCategory] =
-    Seq(BSD, Apache, LGPL, GPLClasspath, GPL, Mozilla, MIT, PublicDomain, CommonPublic, NoneSpecified)
+    Seq(PublicDomain, CommonPublic, Mozilla, MIT, BSD, Apache, LGPL, GPLClasspath, GPL)
 
-  def find(l: License): LicenseCategory =
-    all.find(_.unapply(l)).getOrElse {
-      System.err.println("Unable to find license for: " + l)
-      NoneSpecified
-    }
+  def find(licenses: Seq[LicenseCategory])(licenseName: String): Option[LicenseCategory] =
+    licenses.find(_.unapply(licenseName))
 }
