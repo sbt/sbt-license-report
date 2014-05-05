@@ -18,6 +18,7 @@ licenseOverrides := licenseOverrides.value orElse {
   case DepModuleInfo("com.typesafe.play", _, _) => LicenseInfo(LicenseCategory.Apache, "Apache 2", "http://www.apache.org/licenses/LICENSE-2.0")
 }
 
+// Test adding custom reports.
 licenseReportConfigurations +=
   LicenseReportConfiguration(
    "test-config",

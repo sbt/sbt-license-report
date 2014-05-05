@@ -19,3 +19,7 @@ publishMavenStyle := false
 licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
 
 libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.1"
+
+scriptedSettings
+
+scriptedLaunchOpts <+= version apply { v => "-Dproject.version="+v }

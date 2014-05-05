@@ -11,7 +11,17 @@ object SbtLicenseReport extends AutoPlugin {
   override def requires: Plugins = plugins.IvyPlugin
   override def trigger = allRequirements
   
-  object autoImport {
+  object autoImportImpl {
+    // Types and objects to auto-expose
+    type LicenseCategory = com.typesafe.sbt.license.LicenseCategory
+    def LicenseCategory = com.typesafe.sbt.license.LicenseCategory
+    type TargetLanguage = com.typesafe.sbt.license.TargetLanguage
+    type LicenseReportConfiguration = com.typesafe.sbt.license.LicenseReportConfiguration
+    def LicenseReportConfiguration = com.typesafe.sbt.license.LicenseReportConfiguration
+    def Html = com.typesafe.sbt.license.Html
+    def MarkDown = com.typesafe.sbt.license.MarkDown
+    
+    // Keys
     val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a project.")
     val licenseReportConfigurations = taskKey[Seq[LicenseReportConfiguration]]("Configuration for each license report we're generating.")
     val dumpLicenseReport = taskKey[File]("Dumps a report file of the license report (using the target language).")
@@ -25,13 +35,15 @@ object SbtLicenseReport extends AutoPlugin {
     val licenseOverrides = settingKey[PartialFunction[DepModuleInfo, LicenseInfo]]("A list of license overrides for artifacts with bad infomration on maven.")
     val licenseFilter = settingKey[LicenseCategory => Boolean]("Configuration for what licenses to include in the report, by default.")
   }
+  // Workaround for broken autoImport in sbt 0.13.5
+  val autoImport = autoImportImpl
   import autoImport._
   
   override def projectSettings: Seq[Setting[_]] =
     Seq(
       licenseSelection := LicenseCategory.all,
       licenseConfigurations := Set("compile", "test"),
-      licenseReportTitle := s"${projectID.value}-licenses",
+      licenseReportTitle := s"${normalizedName.value}-licenses",
       // Here we use an empty partial function
       licenseReportNotes := PartialFunction.empty,
       licenseOverrides := PartialFunction.empty,
