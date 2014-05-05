@@ -5,10 +5,27 @@ import sbt._
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.IvyNode
 
-case class License(name: String, url: String)(val deps: Seq[String]) {
-  override def toString = name + " @ " + url
+case class DepModuleInfo(organization: String, name: String, version: String) {
+  override def toString = s"${organization} # ${name} # ${version}"
 }
-case class LicenseReport(licenses: Seq[License], orig: ResolveReport)
+case class DepLicense(module: DepModuleInfo, license: LicenseInfo, configs: Set[String]) {
+  override def toString = s"$module on $license in ${configs.mkString("(", ",", ")")}"
+}
+
+case class LicenseInfo(category: LicenseCategory, name: String, url: String) {
+  override def toString = category.name
+}
+case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
+  override def toString = s"""|## License Report ##
+                              |${licenses.mkString("\t", "\n\t", "\n")}
+                              |""".stripMargin
+}
+
+case class LicenseReportConfiguration(
+  title: String,
+  languages: Seq[TargetLanguage],
+  makeHeader: TargetLanguage => String,
+  reportDir: File)
 
 object LicenseReport {
 
@@ -16,108 +33,89 @@ object LicenseReport {
     IO.createDirectory(file.getParentFile)
     Using.fileWriter(java.nio.charset.Charset.defaultCharset, false)(file) { writer =>
       def println(msg: Any): Unit = {
-        System.out.println(msg)
         writer.write(msg.toString)
-        writer.newLine()
+        //writer.newLine()
       }
       f(println _)
     }
   }
 
-  // Dumps the license report in csv form.
-  def dumpCsv(report: LicenseReport, println: Any => Unit): Unit = {
-    def dumpLine(cat: LicenseCategory, license: License, dep: String): Unit = {
-      println("%s; %s; %s".format(cat.name, license.name, dep))
-    }
-    println("Cateogory;License;Dependency")
-    val categories = report.licenses.groupBy(LicenseCategory.find)
-    for {
-      (cat, licenses) <- categories
-      license <- licenses
-      dep <- license.deps
-    } dumpLine(cat, license, dep)
-  }
-
-  // Dumps a tree-form of the license report.
-  def dumpReport(report: LicenseReport, println: Any => Unit): Unit = {
-    // License grouping heuristics
-    val categories = report.licenses.groupBy(LicenseCategory.find)
-
-    val reverseCategories = categories.toSeq.flatMap { c =>
-      c._2.map(_ -> c._1)
-    }.toMap
-    def dumpLicenses(toDump: Map[LicenseCategory, Seq[License]]): Unit =
-      toDump.foreach {
-        case (category, licenses) =>
-          println("* " + category.name)
-          licenses foreach { l =>
-            println("  - " + l)
-            l.deps foreach { d =>
-              println("    + " + d)
-            }
+  def dumpLicenseReport(report: LicenseReport, config: LicenseReportConfiguration): Unit = {
+    import config._
+    val ordered = report.licenses sortWith {
+      case (l, r) =>
+        if (l.license.category != r.license.category) l.license.category.name < r.license.category.name
+        else {
+          if (l.license.name != r.license.name) l.license.name < r.license.name
+          else {
+            l.module.toString < r.module.toString
           }
+        }
+    }
+    // TODO - Make one of these for every configuration?
+    for (language <- languages) {
+      val reportFile = new File(config.reportDir, s"license-report.${language.ext}")
+      withPrintableFile(reportFile) { print =>
+        print(language.documentStart(title))
+        print(makeHeader(language))
+        print(language.header1("LicenseReport"))
+        print(language.tableHeader("Category", "License", "Dependency", "Notes"))
+        for (dep <- ordered) {
+          print(language.tableRow(dep.license.category.name, dep.license.name, dep.module.toString, ""))
+        }
+        print(language.tableEnd)
+        print(language.documentEnd)
       }
-
-    // Now dump the report.
-    println("# License Report")
-    println("")
-    println("The following license categories have been created:")
-    println("")
-    println("## Non-Viral licenses")
-    println("")
-    dumpLicenses(categories.filterNot(_._1.viral))
-    println("")
-    println("## Viral/Unknown licenses")
-    println("")
-    dumpLicenses(categories.filter(_._1.viral))
-    println("")
+    }
+  }
+  def getModuleInfo(dep: IvyNode): DepModuleInfo = {
+    // TODO - null handling...
+    DepModuleInfo(dep.getModuleId.getOrganisation, dep.getModuleId.getName, dep.getModuleRevision.getId.getRevision)
   }
 
-  def getArtifactNames(dep: IvyNode): Seq[String] = {
-    val versionStringOpt =
-      for {
-        desc <- Option(dep.getDescriptor)
-        v <- Option(desc.getRevision)
-      } yield "#" + v
-    val v = versionStringOpt.getOrElse("")
-    val groupOpt =
-      for {
-        desc <- Option(dep.getDescriptor)
-        m <- Option(dep.getModuleId)
-      } yield m.getOrganisation + " # "
-    val g = groupOpt.getOrElse("")
-    dep.getAllArtifacts.map(g + _.getName + v)
-  }
-
-  def makeReport(module: IvySbt#Module, configs: Seq[String], log: Logger): LicenseReport = {
+  def makeReport(module: IvySbt#Module, configs: Set[String], licenseSelection: Seq[LicenseCategory], log: Logger): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
-    makeReportImpl(report, configs, log)
+    makeReportImpl(report, configs, licenseSelection, log)
   }
+  /**
+   * given a set of categories and an array of ivy-resolved licsenses, pick the first one from our list, or
+   *  default to 'none specified'.
+   */
+  def pickLicense(categories: Seq[LicenseCategory])(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
+    val allMatchedLicenses = licenses flatMap { l =>
+      LicenseCategory.find(categories)(l.getName) match {
+        case Some(category) => Seq(LicenseInfo(category, l.getName, l.getUrl))
+        case _ => Nil
+      }
+    }
+    allMatchedLicenses.headOption getOrElse LicenseInfo(LicenseCategory.NoneSpecified, "", "")
+  }
+  /** Picks a single license (or none) for this dependency. */
+  def pickLicenseForDep(dep: IvyNode, configs: Set[String], categories: Seq[LicenseCategory]): Option[DepLicense] =
+    for {
+      d <- Option(dep)
+      cs = dep.getRootModuleConfigurations.toSet
+      filteredConfigs = if (cs.isEmpty) cs else cs.filter(configs)
+      if !filteredConfigs.isEmpty
+      desc <- Option(dep.getDescriptor)
+      licenses = Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
+      // TODO - grab configurations.
+    } yield DepLicense(getModuleInfo(dep), pickLicense(categories)(licenses), filteredConfigs)
 
-  def getLicenses(report: ResolveReport, configs: Seq[String] = Seq.empty): Seq[License] = {
+  def getLicenses(report: ResolveReport, configs: Set[String] = Set.empty, categories: Seq[LicenseCategory] = LicenseCategory.all): Seq[DepLicense] = {
     import collection.JavaConverters._
     for {
       dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
-      if dep != null
-      if (configs.isEmpty) || (configs.exists(dep.getRootModuleConfigurations.contains))
-      desc <- Option(dep.getDescriptor).toSeq
-      license <- Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
-    } yield License(license.getName, license.getUrl)(getArtifactNames(dep))
+      report <- pickLicenseForDep(dep, configs, categories)
+    } yield report
   }
 
-  def groupLicenses(licenses: Seq[License]): Iterable[License] = {
-    for {
-      (name, licenses) <- licenses.groupBy(_.name)
-      l <- licenses.headOption.toSeq
-    } yield License(l.name, l.url)(licenses flatMap (_.deps) distinct)
-  }
-
-  def makeReportImpl(report: ResolveReport, configs: Seq[String], log: Logger): LicenseReport = {
+  def makeReportImpl(report: ResolveReport, configs: Set[String], categories: Seq[LicenseCategory], log: Logger): LicenseReport = {
     import collection.JavaConverters._
-    val licenses = getLicenses(report, configs)
-    val grouped = groupLicenses(licenses)
-    LicenseReport(grouped.toSeq, report)
+    val licenses = getLicenses(report, configs, categories)
+    // TODO - Filter for a real report...
+    LicenseReport(licenses, report)
   }
 
   // Hacky way to go re-lookup the report
@@ -129,7 +127,6 @@ object LicenseReport {
       resolveOptions.setResolveId(resolveId)
       import org.apache.ivy.core.LogOptions.LOG_QUIET
       resolveOptions.setLog(LOG_QUIET)
-      //ResolutionCache.cleanModule(module.getModuleRevisionId, resolveId, ivy.getSettings.getResolutionCacheManager)
       val resolveReport = ivy.resolve(desc, resolveOptions)
       val err =
         if (resolveReport.hasError) {

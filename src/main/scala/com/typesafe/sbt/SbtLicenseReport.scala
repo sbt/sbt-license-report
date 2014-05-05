@@ -2,31 +2,52 @@ package com.typesafe.sbt
 
 import sbt._
 import Keys._
+import license._
 
-object SbtLicenseReport extends Plugin {
-  val makeLicenseReport = TaskKey[license.LicenseReport]("makeLicenseReport", "Displays a report of used licenses in a project.")
-  val dumpLicenseReport = TaskKey[Unit]("dumpLicenseReport", "Displays a report of used licenses in a project.")
-  val licenseReportCsv = SettingKey[File]("licenseReportCsv", "The location where we'll write the license report.")
-  val dumpLicenseReportCsv = TaskKey[File]("dumpLicenseReportCsv", "Dumps a csv file of the license report.")
-  val licenseConfigurations = SettingKey[Seq[String]]("licenseConfigurations", "The configurations we wish a report of.")
 
+
+/** A plugin which enables reporting on licensing used within a project. */
+object SbtLicenseReport extends AutoPlugin {
+  override def requires: Plugins = plugins.IvyPlugin
+  override def trigger = allRequirements
+  
+  object autoImports {
+    val makeLicenseReport = taskKey[LicenseReport]("Displays a report of used licenses in a project.")
+    val dumpLicenseReport = taskKey[File]("Dumps a report file of the license report (using the target language).")
+    val licenseReportDir = settingKey[File]("The location where we'll write the license reports.")
+    val licenseReportTitle = settingKey[String]("The name of the license report.")
+    val licenseConfigurations = settingKey[Set[String]]("The ivy configurations we wish a report of.")
+    val licenseSelection = settingKey[Seq[LicenseCategory]]("A priority-order list mechanism we can use to select licenses for projects that have more than one.")
+    val licenseReportMakeHeader = settingKey[TargetLanguage => String]("A mechanism of generating the header for the license report file.")
+    val licenseReportTypes = settingKey[Seq[TargetLanguage]]("The license report files to generate.")
+  }
+  import autoImports._  
+  
   override def projectSettings: Seq[Setting[_]] =
     Seq(
-      makeLicenseReport <<= (update, ivyModule, licenseConfigurations, streams) map { (_, module, configs, s) =>
-        license.LicenseReport.makeReport(module, configs, s.log)
+      licenseSelection := LicenseCategory.all,
+      licenseConfigurations := Set("compile", "test"),
+      licenseReportTitle := s"License Report for - ${projectID.value}",
+      makeLicenseReport := {
+        val ignore = update.value
+        license.LicenseReport.makeReport(ivyModule.value, licenseConfigurations.value, licenseSelection.value, streams.value.log)
       },
-      licenseReportCsv <<= target apply (_ / "licenseReport.csv"),
-      dumpLicenseReport <<= makeLicenseReport map { report =>
-        System.out.synchronized {
-          license.LicenseReport.dumpReport(report, x => println(x))
-        }
-      },
-      dumpLicenseReportCsv <<= (makeLicenseReport, licenseReportCsv) map { (report, file) =>
-        license.LicenseReport.withPrintableFile(file) { println =>
-          license.LicenseReport.dumpCsv(report, println)
-        }
-        file
-      },
-      licenseConfigurations := Seq.empty
+      // TODO - A default header.
+      licenseReportMakeHeader := (language => ""),
+      // TODO - Maybe we need a general purpose reporting directory
+      licenseReportDir := target.value / "license-reports",
+      licenseReportTypes := Seq(MarkDown, Html),
+      dumpLicenseReport := {
+        val report = makeLicenseReport.value
+        val dir = licenseReportDir.value
+        // TODO - Configurable language (markdown/html) rather than both always
+        val reportTypes = licenseReportTypes.value
+        val config = LicenseReportConfiguration(licenseReportTitle.value, reportTypes, licenseReportMakeHeader.value, dir)
+        LicenseReport.dumpLicenseReport(report, config)
+        // Now let's just report on one of them.
+        
+        dir
+      }
+
     )
 }
