@@ -11,7 +11,7 @@ object SbtLicenseReport extends AutoPlugin {
   override def requires: Plugins = plugins.IvyPlugin
   override def trigger = allRequirements
   
-  object autoImports {
+  object autoImport {
     val makeLicenseReport = taskKey[LicenseReport]("Displays a report of used licenses in a project.")
     val dumpLicenseReport = taskKey[File]("Dumps a report file of the license report (using the target language).")
     val licenseReportDir = settingKey[File]("The location where we'll write the license reports.")
@@ -20,14 +20,17 @@ object SbtLicenseReport extends AutoPlugin {
     val licenseSelection = settingKey[Seq[LicenseCategory]]("A priority-order list mechanism we can use to select licenses for projects that have more than one.")
     val licenseReportMakeHeader = settingKey[TargetLanguage => String]("A mechanism of generating the header for the license report file.")
     val licenseReportTypes = settingKey[Seq[TargetLanguage]]("The license report files to generate.")
+    val licenseReportNotes = settingKey[PartialFunction[DepModuleInfo, String]]("A partial functoin that will obtain license report notes based on module.")
   }
-  import autoImports._  
+  import autoImport._
   
   override def projectSettings: Seq[Setting[_]] =
     Seq(
       licenseSelection := LicenseCategory.all,
       licenseConfigurations := Set("compile", "test"),
       licenseReportTitle := s"License Report for - ${projectID.value}",
+      // Here we use an empty partial function
+      licenseReportNotes := PartialFunction.empty,
       makeLicenseReport := {
         val ignore = update.value
         license.LicenseReport.makeReport(ivyModule.value, licenseConfigurations.value, licenseSelection.value, streams.value.log)
@@ -42,7 +45,8 @@ object SbtLicenseReport extends AutoPlugin {
         val dir = licenseReportDir.value
         // TODO - Configurable language (markdown/html) rather than both always
         val reportTypes = licenseReportTypes.value
-        val config = LicenseReportConfiguration(licenseReportTitle.value, reportTypes, licenseReportMakeHeader.value, dir)
+        val notesLookup = licenseReportNotes.value.lift
+        val config = LicenseReportConfiguration(licenseReportTitle.value, reportTypes, licenseReportMakeHeader.value, notesLookup, dir)
         LicenseReport.dumpLicenseReport(report, config)
         // Now let's just report on one of them.
         

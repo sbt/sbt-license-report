@@ -25,6 +25,7 @@ case class LicenseReportConfiguration(
   title: String,
   languages: Seq[TargetLanguage],
   makeHeader: TargetLanguage => String,
+  notes: DepModuleInfo => Option[String],
   reportDir: File)
 
 object LicenseReport {
@@ -61,7 +62,11 @@ object LicenseReport {
         print(language.header1("LicenseReport"))
         print(language.tableHeader("Category", "License", "Dependency", "Notes"))
         for (dep <- ordered) {
-          print(language.tableRow(dep.license.category.name, dep.license.name, dep.module.toString, ""))
+          print(language.tableRow(
+            dep.license.category.name,
+            dep.license.name,
+            dep.module.toString,
+            notes(dep.module) getOrElse ""))
         }
         print(language.tableEnd)
         print(language.documentEnd)

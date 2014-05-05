@@ -1,3 +1,6 @@
+import com.typesafe.sbt.license.DepModuleInfo
+import com.typesafe.sbt.SbtLicenseReport.autoImport.licenseReportNotes
+
 libraryDependencies += "com.typesafe.play" %% "play" % "2.2.2"
 
 libraryDependencies ++= Seq(
@@ -6,3 +9,7 @@ libraryDependencies ++= Seq(
 )
 
 scalaVersion := "2.10.4"
+
+licenseReportNotes := licenseReportNotes.value orElse {
+  case DepModuleInfo(org, _, _) if org contains "com.typesafe" => "From Typesafe Reactive Platform."
+}
