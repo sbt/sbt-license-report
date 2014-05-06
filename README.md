@@ -7,11 +7,7 @@ sbt 0.13.5+
 
 Create a file in your project called `project/license.sbt` with the following contents:
 
-<<<<<<< HEAD
-    addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "0.1")
-=======
-  addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "1.0")
->>>>>>> 3724de6f2f... Bumped readme with new config options and version.
+  addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "1.0.0")
 
 ## Usage
 
