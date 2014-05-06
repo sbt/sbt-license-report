@@ -81,12 +81,14 @@ object LicenseReport {
    *  default to 'none specified'.
    */
   def pickLicense(categories: Seq[LicenseCategory])(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
-    val allMatchedLicenses = licenses flatMap { l =>
-      LicenseCategory.find(categories)(l.getName) match {
-        case Some(category) => Seq(LicenseInfo(category, l.getName, l.getUrl))
-        case _ => Nil
-      }
-    }
+    val allMatchedLicenses =
+      for {
+        // We look for a lciense matching the category in the order they are defined.
+        // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
+        category <- categories.toStream
+        l <- licenses
+        if category.unapply(l.getName)
+      } yield LicenseInfo(category, l.getName, l.getUrl)
     allMatchedLicenses.headOption getOrElse LicenseInfo(LicenseCategory.NoneSpecified, "", "")
   }
   /** Picks a single license (or none) for this dependency. */
