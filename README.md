@@ -7,7 +7,7 @@ sbt 0.13.5+
 
 Create a file in your project called `project/license.sbt` with the following contents:
 
-  addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "1.0.0")
+    addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "1.0.0")
 
 ## Usage
 
@@ -20,36 +20,36 @@ This dumps a report of all the licenses used in a project, with an attempt to or
 The license report plugin can be configured to dump any number of reports, but the default report
 can be controlled via the following keys:
 
-  // Used to name the report file, and in the HTML/Markdown as the
-  // title.
-  licenseReportTitle := "Example Report"
+    // Used to name the report file, and in the HTML/Markdown as the
+    // title.
+    licenseReportTitle := "Example Report"
 
-  // The ivy configurations we'd like to grab licenses for.
-  licenseConfigurations := Set("compile", "provided")
+    // The ivy configurations we'd like to grab licenses for.
+    licenseConfigurations := Set("compile", "provided")
 
-  // The order in which we find/choose licenses.  You can add your own license
-  // detection here
-  licenseSelection := Seq(LicenseCategory.BSD, LicenseCategory.Apache)
+    // The order in which we find/choose licenses.  You can add your own license
+    // detection here
+    licenseSelection := Seq(LicenseCategory.BSD, LicenseCategory.Apache)
 
-  // Attach notes to modules
-  licenseReportNotes := {
-    case DepModuleInfo(group, id, version) if group == "example" => "Made up artifact"
-  }
+    // Attach notes to modules
+    licenseReportNotes := {
+      case DepModuleInfo(group, id, version) if group == "example" => "Made up artifact"
+    }
 
-  // Override the license information from ivy, if it's non-existent or
-  // wrong
-  licenseOverrides := {
-    case DepModuleInfo("com.jsuereth", _, _) => LicenseCategory.BSD
-  }
+    // Override the license information from ivy, if it's non-existent or
+    // wrong
+    licenseOverrides := {
+      case DepModuleInfo("com.jsuereth", _, _) => LicenseCategory.BSD
+    }
     
 # Releasing
 
 A three step process
 
 
-  > git tag -u <pgp key> v<version>
-  > sbt
-  sbt> publishSigned
+    > git tag -u <pgp key> v<version>
+    > sbt
+    sbt> publishSigned
 
 
 # License
