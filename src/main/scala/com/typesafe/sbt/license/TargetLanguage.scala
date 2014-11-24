@@ -27,7 +27,7 @@ sealed trait TargetLanguage {
 case object MarkDown extends TargetLanguage {
   val ext = "md"
   // TODO - Header for markdown?
-  def documentStart(title: String, reportStyleRules:String): String = ""
+  def documentStart(title: String, reportStyleRules: String): String = ""
   def documentEnd(): String = ""
   def createHyperLink(link: String, content: String): String =
     s"[$content]($link)"
