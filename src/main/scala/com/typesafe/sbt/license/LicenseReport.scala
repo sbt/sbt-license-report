@@ -50,7 +50,7 @@ object LicenseReport {
     for (language <- languages) {
       val reportFile = new File(config.reportDir, s"${title}.${language.ext}")
       withPrintableFile(reportFile) { print =>
-        print(language.documentStart(title))
+        print(language.documentStart(title, reportStyleRules))
         print(makeHeader(language))
         print(language.tableHeader("Category", "License", "Dependency", "Notes"))
         for (dep <- ordered) {

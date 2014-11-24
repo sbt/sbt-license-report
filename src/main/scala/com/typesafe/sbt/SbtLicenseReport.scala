@@ -26,6 +26,7 @@ object SbtLicenseReport extends AutoPlugin {
     val licenseReportConfigurations = taskKey[Seq[LicenseReportConfiguration]]("Configuration for each license report we're generating.")
     val dumpLicenseReport = taskKey[File]("Dumps a report file of the license report (using the target language).")
     val licenseReportDir = settingKey[File]("The location where we'll write the license reports.")
+    val licenseReportStyleRules = settingKey[String]("The style rules for license report styling")
     val licenseReportTitle = settingKey[String]("The name of the license report.")
     val licenseConfigurations = settingKey[Set[String]]("The ivy configurations we wish a report of.")
     val licenseSelection = settingKey[Seq[LicenseCategory]]("A priority-order list mechanism we can use to select licenses for projects that have more than one.")
@@ -57,13 +58,15 @@ object SbtLicenseReport extends AutoPlugin {
       licenseReportMakeHeader := (language => language.header1(licenseReportTitle.value)),
       // TODO - Maybe we need a general purpose reporting directory
       licenseReportDir := target.value / "license-reports",
+      licenseReportStyleRules := "",
       licenseReportTypes := Seq(MarkDown, Html),
       licenseReportConfigurations := {
         val dir = licenseReportDir.value
+        val styleRules = licenseReportStyleRules.value
         // TODO - Configurable language (markdown/html) rather than both always
         val reportTypes = licenseReportTypes.value
         val notesLookup = licenseReportNotes.value.lift
-        val config = LicenseReportConfiguration(licenseReportTitle.value, reportTypes, licenseReportMakeHeader.value, notesLookup, licenseFilter.value, dir)
+        val config = LicenseReportConfiguration(licenseReportTitle.value, reportTypes, licenseReportMakeHeader.value, notesLookup, licenseFilter.value, dir, styleRules)
         Seq(config)
       },
       dumpLicenseReport := {

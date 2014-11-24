@@ -9,4 +9,5 @@ case class LicenseReportConfiguration(
   makeHeader: TargetLanguage => String,
   notes: DepModuleInfo => Option[String],
   licenseFilter: LicenseCategory => Boolean,
-  reportDir: File)
+  reportDir: File,
+  reportStyleRules: String)

@@ -5,7 +5,7 @@ package license
  * Hooks for generating "rich" text documents.  Borrowed from scala/make-release-notes
  */
 sealed trait TargetLanguage {
-  def documentStart(title: String): String
+  def documentStart(title: String, reportStyleRules: String): String
   def documentEnd(): String
   /** Create a link with the given content string as the displayed text. */
   def createHyperLink(link: String, content: String): String
@@ -27,7 +27,7 @@ sealed trait TargetLanguage {
 case object MarkDown extends TargetLanguage {
   val ext = "md"
   // TODO - Header for markdown?
-  def documentStart(title: String): String = ""
+  def documentStart(title: String, reportStyleRules:String): String = ""
   def documentEnd(): String = ""
   def createHyperLink(link: String, content: String): String =
     s"[$content]($link)"
@@ -55,8 +55,8 @@ $firstColumn | $secondColumn | $thirdColumn | $fourthColumn
 case object Html extends TargetLanguage {
   val ext = "html"
 
-  def documentStart(title: String): String =
-    s"""<html><head><title>${title}</title></head><body>"""
+  def documentStart(title: String, reportStyleRules: String): String =
+    s"""<html><head><style media="screen" type="text/css">${reportStyleRules}</style><title>${title}</title></head><body>"""
   def documentEnd(): String = "</body></html>"
   def createHyperLink(link: String, content: String): String =
     s"""<a href="$link">$content</a>"""
