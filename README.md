@@ -24,6 +24,9 @@ can be controlled via the following keys:
     // title.
     licenseReportTitle := "Example Report"
 
+    // Add style rules to the report.
+    licenseReportStyleRules := "table, th, td {border: 1px solid black;}"
+
     // The ivy configurations we'd like to grab licenses for.
     licenseConfigurations := Set("compile", "provided")
 
@@ -41,7 +44,7 @@ can be controlled via the following keys:
     licenseOverrides := {
       case DepModuleInfo("com.jsuereth", _, _) => LicenseCategory.BSD
     }
-    
+
 # Releasing
 
 A three step process
