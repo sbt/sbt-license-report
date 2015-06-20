@@ -27,10 +27,11 @@ object LicenseCategory {
   val MIT = LicenseCategory("MIT")
   val CommonPublic = LicenseCategory("Common Public License", Seq("cpl", "common public"))
   val PublicDomain = LicenseCategory("Public Domain")
+  val CC0 = LicenseCategory("CC0", Seq("Creative Commons Zero"))
   val NoneSpecified = LicenseCategory("none specified")
 
   val all: Seq[LicenseCategory] =
-    Seq(PublicDomain, CommonPublic, Mozilla, MIT, BSD, Apache, LGPL, GPLClasspath, GPL)
+    Seq(PublicDomain, CommonPublic, CC0, Mozilla, MIT, BSD, Apache, LGPL, GPLClasspath, GPL)
 
   def find(licenses: Seq[LicenseCategory])(licenseName: String): Option[LicenseCategory] =
     licenses.find(_.unapply(licenseName))
