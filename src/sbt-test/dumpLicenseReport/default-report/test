@@ -1,3 +1,4 @@
 > dumpLicenseReport
 $ exists target/license-reports/example-licenses.md
 $ exists target/license-reports/example-licenses.html
+> check
