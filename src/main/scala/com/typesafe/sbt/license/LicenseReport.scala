@@ -98,6 +98,7 @@ object LicenseReport {
       cs = dep.getRootModuleConfigurations.toSet
       filteredConfigs = if (cs.isEmpty) cs else cs.filter(configs)
       if !filteredConfigs.isEmpty
+      if !filteredConfigs.forall(d.isEvicted)
       desc <- Option(dep.getDescriptor)
       licenses = Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
       // TODO - grab configurations.
