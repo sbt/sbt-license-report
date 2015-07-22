@@ -11,9 +11,9 @@ sealed trait TargetLanguage {
   def createHyperLink(link: String, content: String): String
   /** Add a blank line. Note: For HTML may not be a blank string. */
   def blankLine(): String
-  /** Creates somethign equivalent to an html <h1> tag. */
+  /** Creates something equivalent to an html &lt;h1&gt; tag. */
   def header1(msg: String): String
-  /** Creates somethign equivalent to an html <h4> tag. */
+  /** Creates something equivalent to an html &lt;h4&gt; tag. */
   def header4(msg: String): String
   /** The syntax for the header of a table. */
   def tableHeader(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String
