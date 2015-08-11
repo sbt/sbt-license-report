@@ -20,6 +20,8 @@ This dumps a report of all the licenses used in a project, with an attempt to or
 The license report plugin can be configured to dump any number of reports, but the default report
 can be controlled via the following keys:
 
+    import com.typesafe.sbt.license.{LicenseInfo, DepModuleInfo}
+
     // Used to name the report file, and in the HTML/Markdown as the
     // title.
     licenseReportTitle := "Example Report"
@@ -42,7 +44,8 @@ can be controlled via the following keys:
     // Override the license information from ivy, if it's non-existent or
     // wrong
     licenseOverrides := {
-      case DepModuleInfo("com.jsuereth", _, _) => LicenseCategory.BSD
+      case DepModuleInfo("com.jsuereth", _, _) =>
+        LicenseInfo(LicenseCategory.BSD, "BSD-3-Clause", "http://opensource.org/licenses/BSD-3-Clause")
     }
 
 # Releasing
