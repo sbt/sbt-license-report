@@ -12,9 +12,7 @@ case class DepLicense(module: DepModuleInfo, license: LicenseInfo, configs: Set[
   override def toString = s"$module on $license in ${configs.mkString("(", ",", ")")}"
 }
 
-case class LicenseInfo(category: LicenseCategory, name: String, url: String) {
-  override def toString = category.name
-}
+
 case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
   override def toString = s"""|## License Report ##
                               |${licenses.mkString("\t", "\n\t", "\n")}
