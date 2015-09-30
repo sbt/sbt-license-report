@@ -27,7 +27,7 @@ can be controlled via the following keys:
     licenseReportTitle := "Example Report"
 
     // Add style rules to the report.
-    licenseReportStyleRules := "table, th, td {border: 1px solid black;}"
+    licenseReportStyleRules := Some("table, th, td {border: 1px solid black;}")
 
     // The ivy configurations we'd like to grab licenses for.
     licenseConfigurations := Set("compile", "provided")
