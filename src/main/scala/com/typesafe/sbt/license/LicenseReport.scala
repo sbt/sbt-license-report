@@ -75,19 +75,24 @@ object LicenseReport {
     makeReportImpl(report, configs, licenseSelection, overrides, log)
   }
   /**
-   * given a set of categories and an array of ivy-resolved licsenses, pick the first one from our list, or
+   * given a set of categories and an array of ivy-resolved licenses, pick the first one from our list, or
    *  default to 'none specified'.
    */
   def pickLicense(categories: Seq[LicenseCategory])(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
-    val allMatchedLicenses =
-      for {
-        // We look for a lciense matching the category in the order they are defined.
-        // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
-        category <- categories.toStream
-        l <- licenses
-        if category.unapply(l.getName)
-      } yield LicenseInfo(category, l.getName, l.getUrl)
-    allMatchedLicenses.headOption getOrElse LicenseInfo(LicenseCategory.NoneSpecified, "", "")
+    if (licenses.isEmpty) {
+      return LicenseInfo(LicenseCategory.NoneSpecified, "", "")
+    }
+    // We look for a license matching the category in the order they are defined.
+    // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
+    for (category <- categories) {
+      for (license <- licenses) {
+        if (category.unapply(license.getName)) {
+          return LicenseInfo(category, license.getName, license.getUrl)
+        }
+      }
+    }
+    val license = licenses(0)
+    LicenseInfo(LicenseCategory.Unrecognized, license.getName, license.getUrl)
   }
   /** Picks a single license (or none) for this dependency. */
   def pickLicenseForDep(dep: IvyNode, configs: Set[String], categories: Seq[LicenseCategory]): Option[DepLicense] =
