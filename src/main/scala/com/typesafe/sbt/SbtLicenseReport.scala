@@ -20,6 +20,7 @@ object SbtLicenseReport extends AutoPlugin {
     def LicenseReportConfiguration = com.typesafe.sbt.license.LicenseReportConfiguration
     def Html = com.typesafe.sbt.license.Html
     def MarkDown = com.typesafe.sbt.license.MarkDown
+    def Csv = com.typesafe.sbt.license.Csv
     
     // Keys
     val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a project.")
@@ -59,11 +60,11 @@ object SbtLicenseReport extends AutoPlugin {
       // TODO - Maybe we need a general purpose reporting directory
       licenseReportDir := target.value / "license-reports",
       licenseReportStyleRules := None,
-      licenseReportTypes := Seq(MarkDown, Html),
+      licenseReportTypes := Seq(MarkDown, Html, Csv),
       licenseReportConfigurations := {
         val dir = licenseReportDir.value
         val styleRules = licenseReportStyleRules.value
-        // TODO - Configurable language (markdown/html) rather than both always
+        // TODO - Configurable language (markdown/html/csv) rather than all always
         val reportTypes = licenseReportTypes.value
         val notesLookup = licenseReportNotes.value.lift
         val config = LicenseReportConfiguration(licenseReportTitle.value, reportTypes, licenseReportMakeHeader.value, notesLookup, licenseFilter.value, dir, styleRules)

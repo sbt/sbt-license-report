@@ -2,3 +2,4 @@
 $ exists target/license-reports/lreport.md
 > check
 $ exists target/license-reports/test-config.html
+-$ exists target/license-reports/lreport.csv
