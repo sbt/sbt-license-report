@@ -32,6 +32,7 @@ object LicenseCategory {
   val CDDL = LicenseCategory("CDDL", Seq("Common Development and Distribution"))
   val Proprietary = LicenseCategory("Proprietary")
   val NoneSpecified = LicenseCategory("none specified")
+  val Unrecognized = LicenseCategory("unrecognized")
 
   val all: Seq[LicenseCategory] =
     Seq(PublicDomain, CommonPublic, CC0, Mozilla, MIT, BSD, Apache, LGPL, GPLClasspath, GPL, EPL, CDDL, Proprietary)
