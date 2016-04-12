@@ -1,7 +1,8 @@
 package com.typesafe.sbt
 package license
 
-import sbt._
+import java.io.File
+import sbt.{ IO, IvyRetrieve, IvySbt, Logger, ResolveException, Using }
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.IvyNode
 

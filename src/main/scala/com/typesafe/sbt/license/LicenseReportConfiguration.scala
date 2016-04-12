@@ -1,7 +1,7 @@
 package com.typesafe.sbt
 package license
 
-import sbt._
+import java.io.File
 
 case class LicenseReportConfiguration(
   title: String,
