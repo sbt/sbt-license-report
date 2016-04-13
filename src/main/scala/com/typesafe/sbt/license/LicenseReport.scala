@@ -20,7 +20,7 @@ case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
 
 object LicenseReport {
 
-  def withPrintableFile(file: File)(f: (Any => Unit) => Unit): Unit = {
+  private def withPrintableFile(file: File)(f: (Any => Unit) => Unit): Unit = {
     IO.createDirectory(file.getParentFile)
     Using.fileWriter(java.nio.charset.Charset.defaultCharset, false)(file) { writer =>
       def println(msg: Any): Unit = {
@@ -63,7 +63,8 @@ object LicenseReport {
       }
     }
   }
-  def getModuleInfo(dep: IvyNode): DepModuleInfo = {
+
+  private def getModuleInfo(dep: IvyNode): DepModuleInfo = {
     // TODO - null handling...
     DepModuleInfo(dep.getModuleId.getOrganisation, dep.getModuleId.getName, dep.getModuleRevision.getId.getRevision)
   }
@@ -77,7 +78,7 @@ object LicenseReport {
    * given a set of categories and an array of ivy-resolved licenses, pick the first one from our list, or
    *  default to 'none specified'.
    */
-  def pickLicense(categories: Seq[LicenseCategory])(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
+  private def pickLicense(categories: Seq[LicenseCategory])(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
     if (licenses.isEmpty) {
       return LicenseInfo(LicenseCategory.NoneSpecified, "", "")
     }
@@ -93,8 +94,9 @@ object LicenseReport {
     val license = licenses(0)
     LicenseInfo(LicenseCategory.Unrecognized, license.getName, license.getUrl)
   }
+
   /** Picks a single license (or none) for this dependency. */
-  def pickLicenseForDep(dep: IvyNode, configs: Set[String], categories: Seq[LicenseCategory]): Option[DepLicense] =
+  private def pickLicenseForDep(dep: IvyNode, configs: Set[String], categories: Seq[LicenseCategory]): Option[DepLicense] =
     for {
       d <- Option(dep)
       cs = dep.getRootModuleConfigurations.toSet
@@ -106,7 +108,7 @@ object LicenseReport {
       // TODO - grab configurations.
     } yield DepLicense(getModuleInfo(dep), pickLicense(categories)(licenses), filteredConfigs)
 
-  def getLicenses(report: ResolveReport, configs: Set[String] = Set.empty, categories: Seq[LicenseCategory] = LicenseCategory.all): Seq[DepLicense] = {
+  private def getLicenses(report: ResolveReport, configs: Set[String] = Set.empty, categories: Seq[LicenseCategory] = LicenseCategory.all): Seq[DepLicense] = {
     import collection.JavaConverters._
     for {
       dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
@@ -114,8 +116,7 @@ object LicenseReport {
     } yield report
   }
 
-  def makeReportImpl(report: ResolveReport, configs: Set[String], categories: Seq[LicenseCategory], overrides: DepModuleInfo => Option[LicenseInfo], log: Logger): LicenseReport = {
-    import collection.JavaConverters._
+  private def makeReportImpl(report: ResolveReport, configs: Set[String], categories: Seq[LicenseCategory], overrides: DepModuleInfo => Option[LicenseInfo], log: Logger): LicenseReport = {
     val licenses = getLicenses(report, configs, categories) map { l =>
       overrides(l.module) match {
         case Some(o) => l.copy(license = o)
@@ -127,7 +128,7 @@ object LicenseReport {
   }
 
   // Hacky way to go re-lookup the report
-  def resolve(module: IvySbt#Module, log: Logger): (ResolveReport, Option[ResolveException]) =
+  private def resolve(module: IvySbt#Module, log: Logger): (ResolveReport, Option[ResolveException]) =
     module.withModule(log) { (ivy, desc, default) =>
       import org.apache.ivy.core.resolve.ResolveOptions
       val resolveOptions = new ResolveOptions
