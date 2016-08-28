@@ -10,4 +10,5 @@ case class LicenseReportConfiguration(
   notes: DepModuleInfo => Option[String],
   licenseFilter: LicenseCategory => Boolean,
   reportDir: File,
-  reportStyleRules: Option[String] = None)
+  reportStyleRules: Option[String] = None
+)
