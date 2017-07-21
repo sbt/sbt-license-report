@@ -22,4 +22,4 @@ libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.1"
 
 scriptedSettings
 
-scriptedLaunchOpts <+= version apply { v => "-Dproject.version="+v }
+scriptedLaunchOpts += { "-Dproject.version=" + version.value }
