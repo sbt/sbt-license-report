@@ -3,7 +3,7 @@ name := "example"
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.5.4"
 libraryDependencies += "junit"                      % "junit"            % "4.12"  % "test"
 
-excludeDependencies += SbtExclusionRule(organization = "org.scala-lang")
+excludeDependencies += "org.scala-lang"
 
 TaskKey[Unit]("check") := {
   val contents = sbt.IO.read(target.value / "license-reports" / "example-licenses.md")
