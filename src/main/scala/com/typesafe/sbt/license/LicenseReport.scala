@@ -1,7 +1,8 @@
 package com.typesafe.sbt
 package license
 
-import sbt._
+import java.io.File
+import sbt.{ IvyRetrieve, IvySbt, Logger, ResolveException, Using }
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.IvyNode
 import SbtCompat._
@@ -22,7 +23,7 @@ case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
 object LicenseReport {
 
   def withPrintableFile(file: File)(f: (Any => Unit) => Unit): Unit = {
-    IO.createDirectory(file.getParentFile)
+    file.getParentFile.mkdir()
     Using.fileWriter(java.nio.charset.Charset.defaultCharset, false)(file) { writer =>
       def println(msg: Any): Unit = {
         writer.write(msg.toString)
