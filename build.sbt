@@ -3,6 +3,7 @@ organization := "com.typesafe.sbt"
 name := "sbt-license-report"
 
 sbtPlugin := true
+crossSbtVersions := Seq("0.13.16", "1.0.0")
 
 publishMavenStyle := false
 bintrayOrganization := Some("sbt")
