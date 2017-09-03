@@ -1,5 +1,5 @@
 package com.typesafe.sbt
-package
+package license
 
 object SbtCompat {
 }
