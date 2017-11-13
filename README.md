@@ -1,7 +1,7 @@
 # sbt-license-report
 
 This plugin will allow you to report the licenses used in your projects.  It requires
-sbt 0.13.8+ or 1.0.0
+sbt 0.13.11+ or 1.0.0
 
 ## Installation
 
