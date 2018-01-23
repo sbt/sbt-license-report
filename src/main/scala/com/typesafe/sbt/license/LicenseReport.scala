@@ -4,13 +4,14 @@ package license
 import sbt._
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.IvyNode
+import scala.util.control.Exception._
 import SbtCompat._
 
 case class DepModuleInfo(organization: String, name: String, version: String) {
   override def toString = s"${organization} # ${name} # ${version}"
 }
-case class DepLicense(module: DepModuleInfo, license: LicenseInfo, configs: Set[String]) {
-  override def toString = s"$module on $license in ${configs.mkString("(", ",", ")")}"
+case class DepLicense(module: DepModuleInfo, license: LicenseInfo, homepage: Option[URL], configs: Set[String]) {
+  override def toString = s"$module ${homepage.map(url => s" from $url")} on $license in ${configs.mkString("(", ",", ")")}"
 }
 
 case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
@@ -53,10 +54,14 @@ object LicenseReport {
         print(language.tableHeader("Category", "License", "Dependency", "Notes"))
         for (dep <- ordered) {
           val licenseLink = language.createHyperLink(dep.license.url, dep.license.name)
+          val moduleLink = dep.homepage match {
+            case None => dep.module.toString
+            case Some(url) => language.createHyperLink(url.toExternalForm, dep.module.toString)
+          }
           print(language.tableRow(
             dep.license.category.name,
             licenseLink,
-            dep.module.toString,
+            moduleLink,
             notes(dep.module) getOrElse ""))
         }
         print(language.tableEnd)
@@ -106,8 +111,12 @@ object LicenseReport {
       if !filteredConfigs.forall(d.isEvicted)
       desc <- Option(dep.getDescriptor)
       licenses = Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
+      homepage = Option.apply(desc.getHomePage).flatMap(loc =>
+        nonFatalCatch[Option[URL]]
+          .withApply((_: Throwable) => Option.empty[URL])
+          .apply(Some(url(loc))))
       // TODO - grab configurations.
-    } yield DepLicense(getModuleInfo(dep), pickLicense(categories)(licenses), filteredConfigs)
+    } yield DepLicense(getModuleInfo(dep), pickLicense(categories)(licenses), homepage, filteredConfigs)
 
   private def getLicenses(report: ResolveReport, configs: Set[String] = Set.empty, categories: Seq[LicenseCategory] = LicenseCategory.all): Seq[DepLicense] = {
     import collection.JavaConverters._
