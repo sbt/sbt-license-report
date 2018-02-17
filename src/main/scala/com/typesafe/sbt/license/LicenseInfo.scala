@@ -11,8 +11,8 @@ case class LicenseInfo(category: LicenseCategory, name: String, url: String) {
 object LicenseInfo {
   val GPL2 = LicenseInfo(LicenseCategory.GPL, "GNU General Public License (GPL), Version 2.0", "http://opensource.org/licenses/GPL-2.0")
   val GPL3 = LicenseInfo(LicenseCategory.GPL, "GNU General Public License (GPL), Version 3.0", "http://opensource.org/licenses/GPL-3.0")
-  val LGPL2 = LicenseInfo(LicenseCategory.GPL, "GNU Library or \"Lesser\" General Public License, Version 2.1 (LGPL-2.1)", "http://opensource.org/licenses/LGPL-2.1")
-  val LGPL3 = LicenseInfo(LicenseCategory.GPL, "GNU Library or \"Lesser\" General Public License, Version 3.0 (LGPL-3.0)", "http://opensource.org/licenses/LGPL-3.0")
+  val LGPL2 = LicenseInfo(LicenseCategory.LGPL, "GNU Library or \"Lesser\" General Public License, Version 2.1 (LGPL-2.1)", "http://opensource.org/licenses/LGPL-2.1")
+  val LGPL3 = LicenseInfo(LicenseCategory.LGPL, "GNU Library or \"Lesser\" General Public License, Version 3.0 (LGPL-3.0)", "http://opensource.org/licenses/LGPL-3.0")
   val CDDL = LicenseInfo(LicenseCategory.CDDL, "Common Development and Distribution License (CDDL-1.0)", "http://opensource.org/licenses/CDDL-1.0")
   val CDDL_GPL = LicenseInfo(LicenseCategory.CDDL, "CDDL + GPLv2 License", "https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html")
   val APACHE2 = LicenseInfo(LicenseCategory.Apache, "The Apache Software License, Version 2.0", "http://www.apache.org/licenses/LICENSE-2.0.txt")
