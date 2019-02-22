@@ -7,7 +7,7 @@ excludeDependencies += "org.scala-lang"
 
 TaskKey[Unit]("check") := {
   val contents = sbt.IO.read(target.value / "license-reports" / "example-licenses.md")
-  if (!contents.contains("[The Apache Software License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.txt) | com.fasterxml.jackson.core # jackson-databind # 2.5.4"))
+  if (!contents.contains("[The Apache Software License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.txt) | [com.fasterxml.jackson.core # jackson-databind # 2.5.4](http://github.com/FasterXML/jackson)"))
     sys.error("Expected report to contain jackson-databind with Apache license: " + contents)
   if (!contents.contains("jackson-databind"))
     sys.error("Expected report to contain jackson-databind: " + contents)
