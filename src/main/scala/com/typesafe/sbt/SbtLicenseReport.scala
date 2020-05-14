@@ -10,7 +10,7 @@ import license._
 object SbtLicenseReport extends AutoPlugin {
   override def requires: Plugins = plugins.IvyPlugin
   override def trigger = allRequirements
-  
+
   object autoImportImpl {
     // Types and objects to auto-expose
     type LicenseCategory = com.typesafe.sbt.license.LicenseCategory
@@ -21,7 +21,8 @@ object SbtLicenseReport extends AutoPlugin {
     def Html = com.typesafe.sbt.license.Html
     def MarkDown = com.typesafe.sbt.license.MarkDown
     def Csv = com.typesafe.sbt.license.Csv
-    
+    def ConfluenceWikiMarkup = com.typesafe.sbt.license.ConfluenceWikiMarkup
+
     // Keys
     val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a project.")
     val licenseReportConfigurations = taskKey[Seq[LicenseReportConfiguration]]("Configuration for each license report we're generating.")
@@ -40,7 +41,7 @@ object SbtLicenseReport extends AutoPlugin {
   // Workaround for broken autoImport in sbt 0.13.5
   val autoImport = autoImportImpl
   import autoImport._
-  
+
   override def projectSettings: Seq[Setting[_]] =
     Seq(
       licenseSelection := LicenseCategory.all,
@@ -74,7 +75,7 @@ object SbtLicenseReport extends AutoPlugin {
         val report = updateLicenses.value
         val dir = licenseReportDir.value
         for(config <- licenseReportConfigurations.value)
-          LicenseReport.dumpLicenseReport(report, config)        
+          LicenseReport.dumpLicenseReport(report, config)
         dir
       }
 
