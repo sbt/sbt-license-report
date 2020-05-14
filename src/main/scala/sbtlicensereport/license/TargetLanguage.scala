@@ -100,3 +100,37 @@ case object Csv extends TargetLanguage {
   def tableEnd: String = ""
   def csvEncode(s: String): String = org.apache.commons.lang3.StringEscapeUtils.escapeCsv(s)
 }
+
+case object ConfluenceWikiMarkup extends TargetLanguage {
+  val ext = "confluence.mu"
+  def documentStart(title: String, reportStyleRules: Option[String]): String = ""
+  def documentEnd(): String = ""
+  def createHyperLink(link: String, content: String): String = s"[${trim(content)}|${trim(link)}]"
+  def blankLine(): String = "\n"
+  def header1(msg: String): String = s"h1.$msg\n"
+  def tableHeader(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String = {
+    s"|| $firstColumn || $secondColumn || $thirdColumn || $fourthColumn ||\n"
+  }
+
+  def tableRow(
+    firstColumn: String,
+    secondColumn: String,
+    thirdColumn: String,
+    fourthColumn: String): String = s"| $firstColumn | $secondColumn | $thirdColumn | $fourthColumn |\n"
+  def tableEnd: String = "\n"
+
+  def markdownEncode(s: String): String = s.flatMap {
+    case c if (List('*', '`', '[', ']', '#', '|').contains(c)) => "\\" + c
+    case x => x.toString
+  }
+
+  def escapeHtml(s: String): String = Html.htmlEncode(s).flatMap {
+    case '|' => "&#124;" // it would destroy tables!
+    case c => c.toString
+  }
+
+  /** Null handling trim utility function. */
+  private[this] def trim(in: String): String = {
+    Option(in).fold("") { string => string.trim }
+  }
+}

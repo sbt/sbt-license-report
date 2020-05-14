@@ -19,6 +19,7 @@ object SbtLicenseReport extends AutoPlugin {
     def Html = sbtlicensereport.license.Html
     def MarkDown = sbtlicensereport.license.MarkDown
     def Csv = sbtlicensereport.license.Csv
+    def ConfluenceWikiMarkup = sbtlicensereport.license.ConfluenceWikiMarkup
 
     // Keys
     val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a project.")
