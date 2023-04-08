@@ -1,13 +1,12 @@
 # sbt-license-report
 
-This plugin will allow you to report the licenses used in your projects.  It requires
-sbt 0.13.11+ or 1.0.0
+This plugin will allow you to report the licenses used in your projects. It requires 1.0.0+.
 
 ## Installation
 
 Create a file in your project called `project/license.sbt` with the following contents:
 
-    addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % "1.2.0")
+    addSbtPlugin("com.github.sbt" % "sbt-license-report" % "<latest-version>")
 
 ## Usage
 
@@ -50,13 +49,9 @@ can be controlled via the following keys:
 
 # Releasing
 
-A three step process
-
-
-    > git tag -u <pgp key> v<version>
-    > sbt
-    sbt> publishSigned
-
+This plugin uses [sbt-ci-release](https://github.com/sbt/sbt-ci-release). To
+release a new version you just need to tag and push the new tag. That will
+trigger CI to publish a new release.
 
 # License
 
