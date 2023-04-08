@@ -19,7 +19,7 @@ object LicenseCategory {
     override def unapply(license: String): Boolean = {
       val name = license.toLowerCase
       ((name.contains("gpl") || name.contains("general public license")) &&
-        name.contains("classpath"))
+      name.contains("classpath"))
     }
   }
   val GPL = LicenseCategory("GPL", Seq("general public license"))
