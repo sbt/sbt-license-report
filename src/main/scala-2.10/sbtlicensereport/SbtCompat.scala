@@ -1,0 +1,3 @@
+package sbtlicensereport
+
+object SbtCompat

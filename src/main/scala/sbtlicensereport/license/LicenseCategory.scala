@@ -1,4 +1,4 @@
-package com.typesafe.sbt
+package sbtlicensereport
 package license
 
 // TODO - What do we mean by viral?

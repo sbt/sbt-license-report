@@ -1,4 +1,4 @@
-package com.typesafe.sbt
+package sbtlicensereport
 package license
 
 import sbt._

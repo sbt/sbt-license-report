@@ -1,4 +1,4 @@
-package com.typesafe.sbt
+package sbtlicensereport
 
 import sbt._
 import Keys._
@@ -8,18 +8,18 @@ import license._
 object SbtLicenseReport extends AutoPlugin {
   override def requires: Plugins = plugins.IvyPlugin
   override def trigger = allRequirements
-  
+
   object autoImportImpl {
     // Types and objects to auto-expose
-    type LicenseCategory = com.typesafe.sbt.license.LicenseCategory
-    def LicenseCategory = com.typesafe.sbt.license.LicenseCategory
-    type TargetLanguage = com.typesafe.sbt.license.TargetLanguage
-    type LicenseReportConfiguration = com.typesafe.sbt.license.LicenseReportConfiguration
-    def LicenseReportConfiguration = com.typesafe.sbt.license.LicenseReportConfiguration
-    def Html = com.typesafe.sbt.license.Html
-    def MarkDown = com.typesafe.sbt.license.MarkDown
-    def Csv = com.typesafe.sbt.license.Csv
-    
+    type LicenseCategory = sbtlicensereport.license.LicenseCategory
+    def LicenseCategory = sbtlicensereport.license.LicenseCategory
+    type TargetLanguage = sbtlicensereport.license.TargetLanguage
+    type LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
+    def LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
+    def Html = sbtlicensereport.license.Html
+    def MarkDown = sbtlicensereport.license.MarkDown
+    def Csv = sbtlicensereport.license.Csv
+
     // Keys
     val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a project.")
     val licenseReportConfigurations = taskKey[Seq[LicenseReportConfiguration]]("Configuration for each license report we're generating.")
@@ -38,7 +38,7 @@ object SbtLicenseReport extends AutoPlugin {
   // Workaround for broken autoImport in sbt 0.13.5
   val autoImport = autoImportImpl
   import autoImport._
-  
+
   override def projectSettings: Seq[Setting[_]] =
     Seq(
       licenseSelection := LicenseCategory.all,
@@ -72,7 +72,7 @@ object SbtLicenseReport extends AutoPlugin {
         val report = updateLicenses.value
         val dir = licenseReportDir.value
         for(config <- licenseReportConfigurations.value)
-          LicenseReport.dumpLicenseReport(report, config)        
+          LicenseReport.dumpLicenseReport(report, config)
         dir
       }
 
