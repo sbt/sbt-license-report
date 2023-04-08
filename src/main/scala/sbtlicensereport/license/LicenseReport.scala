@@ -11,7 +11,8 @@ case class DepModuleInfo(organization: String, name: String, version: String) {
   override def toString = s"${organization} # ${name} # ${version}"
 }
 case class DepLicense(module: DepModuleInfo, license: LicenseInfo, homepage: Option[URL], configs: Set[String]) {
-  override def toString = s"$module ${homepage.map(url => s" from $url")} on $license in ${configs.mkString("(", ",", ")")}"
+  override def toString =
+    s"$module ${homepage.map(url => s" from $url")} on $license in ${configs.mkString("(", ",", ")")}"
 }
 
 case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
@@ -55,14 +56,10 @@ object LicenseReport {
         for (dep <- ordered) {
           val licenseLink = language.createHyperLink(dep.license.url, dep.license.name)
           val moduleLink = dep.homepage match {
-            case None => dep.module.toString
+            case None      => dep.module.toString
             case Some(url) => language.createHyperLink(url.toExternalForm, dep.module.toString)
           }
-          print(language.tableRow(
-            dep.license.category.name,
-            licenseLink,
-            moduleLink,
-            notes(dep.module) getOrElse ""))
+          print(language.tableRow(dep.license.category.name, licenseLink, moduleLink, notes(dep.module) getOrElse ""))
         }
         print(language.tableEnd)
         print(language.documentEnd)
@@ -75,16 +72,25 @@ object LicenseReport {
     DepModuleInfo(dep.getModuleId.getOrganisation, dep.getModuleId.getName, dep.getModuleRevision.getId.getRevision)
   }
 
-  def makeReport(module: IvySbt#Module, configs: Set[String], licenseSelection: Seq[LicenseCategory], overrides: DepModuleInfo => Option[LicenseInfo], log: Logger): LicenseReport = {
+  def makeReport(
+      module: IvySbt#Module,
+      configs: Set[String],
+      licenseSelection: Seq[LicenseCategory],
+      overrides: DepModuleInfo => Option[LicenseInfo],
+      log: Logger
+  ): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
     makeReportImpl(report, configs, licenseSelection, overrides, log)
   }
+
   /**
    * given a set of categories and an array of ivy-resolved licenses, pick the first one from our list, or
    *  default to 'none specified'.
    */
-  private def pickLicense(categories: Seq[LicenseCategory])(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
+  private def pickLicense(
+      categories: Seq[LicenseCategory]
+  )(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
     if (licenses.isEmpty) {
       return LicenseInfo(LicenseCategory.NoneSpecified, "", "")
     }
@@ -102,7 +108,11 @@ object LicenseReport {
   }
 
   /** Picks a single license (or none) for this dependency. */
-  private def pickLicenseForDep(dep: IvyNode, configs: Set[String], categories: Seq[LicenseCategory]): Option[DepLicense] =
+  private def pickLicenseForDep(
+      dep: IvyNode,
+      configs: Set[String],
+      categories: Seq[LicenseCategory]
+  ): Option[DepLicense] =
     for {
       d <- Option(dep)
       cs = dep.getRootModuleConfigurations.toSet
@@ -110,15 +120,25 @@ object LicenseReport {
       if !filteredConfigs.isEmpty
       if !filteredConfigs.forall(d.isEvicted)
       desc <- Option(dep.getDescriptor)
-      licenses = Option(desc.getLicenses).filterNot(_.isEmpty).getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
-      homepage = Option.apply(desc.getHomePage).flatMap(loc =>
-        nonFatalCatch[Option[URL]]
-          .withApply((_: Throwable) => Option.empty[URL])
-          .apply(Some(url(loc))))
+      licenses = Option(desc.getLicenses)
+        .filterNot(_.isEmpty)
+        .getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
+      homepage = Option
+        .apply(desc.getHomePage)
+        .flatMap(
+          loc =>
+            nonFatalCatch[Option[URL]]
+              .withApply((_: Throwable) => Option.empty[URL])
+              .apply(Some(url(loc)))
+        )
       // TODO - grab configurations.
     } yield DepLicense(getModuleInfo(dep), pickLicense(categories)(licenses), homepage, filteredConfigs)
 
-  private def getLicenses(report: ResolveReport, configs: Set[String] = Set.empty, categories: Seq[LicenseCategory] = LicenseCategory.all): Seq[DepLicense] = {
+  private def getLicenses(
+      report: ResolveReport,
+      configs: Set[String] = Set.empty,
+      categories: Seq[LicenseCategory] = LicenseCategory.all
+  ): Seq[DepLicense] = {
     import collection.JavaConverters._
     for {
       dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
@@ -126,11 +146,17 @@ object LicenseReport {
     } yield report
   }
 
-  private def makeReportImpl(report: ResolveReport, configs: Set[String], categories: Seq[LicenseCategory], overrides: DepModuleInfo => Option[LicenseInfo], log: Logger): LicenseReport = {
+  private def makeReportImpl(
+      report: ResolveReport,
+      configs: Set[String],
+      categories: Seq[LicenseCategory],
+      overrides: DepModuleInfo => Option[LicenseInfo],
+      log: Logger
+  ): LicenseReport = {
     val licenses = getLicenses(report, configs, categories) map { l =>
       overrides(l.module) match {
         case Some(o) => l.copy(license = o)
-        case _ => l
+        case _       => l
       }
     }
     // TODO - Filter for a real report...

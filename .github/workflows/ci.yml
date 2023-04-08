@@ -24,4 +24,7 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: 'sbt'
 
-      - run: sbt +scripted
+      - run: sbt -v +scripted
+      - name: Scalafmt
+        shell: bash
+        run: sbt -v clean scalafmtSbtCheck scalafmtCheckAll

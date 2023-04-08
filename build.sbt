@@ -32,5 +32,7 @@ developers := List(
 )
 description := "An sbt plugin to report on licenses used in a project."
 homepage := Some(url(s"https://github.com/$repoSlug"))
-pomIncludeRepository := { _ => false }
+pomIncludeRepository := { _ =>
+  false
+}
 publishMavenStyle := true
