@@ -1,1 +1,1 @@
-addSbtPlugin("com.typesafe.sbt" % "sbt-license-report" % sys.props("project.version"))
+addSbtPlugin("com.github.sbt" % "sbt-license-report" % sys.props("plugin.version"))

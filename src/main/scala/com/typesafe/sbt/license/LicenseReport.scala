@@ -1,11 +1,15 @@
 package com.typesafe.sbt
 package license
 
-import sbt._
 import org.apache.ivy.core.report.ResolveReport
 import org.apache.ivy.core.resolve.IvyNode
+import sbt._
+import sbt.internal.librarymanagement.IvyRetrieve
+import sbt.internal.librarymanagement.IvySbt
+import sbt.io.Using
+import sbt.librarymanagement.ResolveException
+
 import scala.util.control.Exception._
-import SbtCompat._
 
 case class DepModuleInfo(organization: String, name: String, version: String) {
   override def toString = s"${organization} # ${name} # ${version}"
