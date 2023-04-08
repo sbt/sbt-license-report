@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - main
     tags:
       - '*'
   pull_request:
@@ -23,4 +24,4 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: 'sbt'
 
-      - run: sbt scripted
+      - run: sbt +scripted

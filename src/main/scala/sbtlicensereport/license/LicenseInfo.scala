@@ -1,4 +1,5 @@
-package com.typesafe.sbt.license
+package sbtlicensereport
+package license
 
 /**
  * Container for license category, name, and source url
