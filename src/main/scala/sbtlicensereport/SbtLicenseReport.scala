@@ -21,16 +21,22 @@ object SbtLicenseReport extends AutoPlugin {
     def Csv = sbtlicensereport.license.Csv
 
     // Keys
-    val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a project.")
+    val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a build.")
     val licenseReportConfigurations =
       taskKey[Seq[LicenseReportConfiguration]]("Configuration for each license report we're generating.")
     val dumpLicenseReport = taskKey[File]("Dumps a report file of the license report (using the target language).")
+    val dumpLicenseReportAggregate = taskKey[File](
+      "Dumps a report file against project aggregates of the license report (using the target language) and combines it into a single file."
+    )
+    val dumpLicenseReportAnyProject = taskKey[File](
+      "Dumps a report file against all projects of the license report (using the target language) and combines it into a single file."
+    )
     val licenseReportDir = settingKey[File]("The location where we'll write the license reports.")
     val licenseReportStyleRules = settingKey[Option[String]]("The style rules for license report styling.")
     val licenseReportTitle = settingKey[String]("The name of the license report.")
     val licenseConfigurations = settingKey[Set[String]]("The ivy configurations we wish a report of.")
     val licenseSelection = settingKey[Seq[LicenseCategory]](
-      "A priority-order list mechanism we can use to select licenses for projects that have more than one."
+      "A priority-order list mechanism we can use to select licenses for builds that have more than one."
     )
     val licenseReportMakeHeader =
       settingKey[TargetLanguage => String]("A mechanism of generating the header for the license report file.")
@@ -47,6 +53,14 @@ object SbtLicenseReport extends AutoPlugin {
   // Workaround for broken autoImport in sbt 0.13.5
   val autoImport = autoImportImpl
   import autoImport._
+
+  private lazy val aggregateUpdateLicenses = Def.taskDyn {
+    updateLicenses.all(ScopeFilter(inAggregates(thisProjectRef.value)))
+  }
+
+  private lazy val anyProjectUpdateLicenses = Def.taskDyn {
+    updateLicenses.all(ScopeFilter(inAnyProject))
+  }
 
   override def projectSettings: Seq[Setting[_]] =
     Seq(
@@ -95,7 +109,21 @@ object SbtLicenseReport extends AutoPlugin {
         val report = updateLicenses.value
         val dir = licenseReportDir.value
         for (config <- licenseReportConfigurations.value)
-          LicenseReport.dumpLicenseReport(report, config)
+          LicenseReport.dumpLicenseReport(report.licenses, config)
+        dir
+      },
+      dumpLicenseReportAggregate := {
+        val reports = aggregateUpdateLicenses.value
+        val dir = licenseReportDir.value
+        for (config <- licenseReportConfigurations.value)
+          LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses).distinct, config)
+        dir
+      },
+      dumpLicenseReportAnyProject := {
+        val reports = anyProjectUpdateLicenses.value
+        val dir = licenseReportDir.value
+        for (config <- licenseReportConfigurations.value)
+          LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses).distinct, config)
         dir
       }
     )

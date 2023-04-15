@@ -14,6 +14,10 @@ Create a file in your project called `project/license.sbt` with the following co
 
 This dumps a report of all the licenses used in a project, with an attempt to organize them.  These are dumped, by default, to the `target/license-reports` directory.
 
+If you happen to be using a multi project sbt build, you can instead use `dumpLicenseReportAggregate` (which collects the results
+from `aggregate` on the root project) or `dumpLicenseReportAnyProject` (which collects the results for all projects in the sbt build).
+In either case the results will be merged into a single report file in a format that mirrors `dumpLicenseReport`.
+
 ## Configuration
 
 The license report plugin can be configured to dump any number of reports, but the default report
