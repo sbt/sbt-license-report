@@ -117,14 +117,14 @@ object SbtLicenseReport extends AutoPlugin {
         val reports = aggregateUpdateLicenses.value
         val dir = licenseReportDir.value
         for (config <- licenseReportConfigurations.value)
-          LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses).distinct, config)
+          LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses), config)
         dir
       },
       dumpLicenseReportAnyProject := {
         val reports = anyProjectUpdateLicenses.value
         val dir = licenseReportDir.value
         for (config <- licenseReportConfigurations.value)
-          LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses).distinct, config)
+          LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses), config)
         dir
       }
     )

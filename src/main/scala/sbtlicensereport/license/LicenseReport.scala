@@ -34,7 +34,10 @@ object LicenseReport {
     }
   }
 
-  def dumpLicenseReport(reportLicenses: Seq[DepLicense], config: LicenseReportConfiguration): Unit = {
+  def dumpLicenseReport(
+      reportLicenses: Seq[DepLicense],
+      config: LicenseReportConfiguration
+  ): Unit = {
     import config._
     val ordered = reportLicenses.filter(l => licenseFilter(l.license.category)) sortWith {
       case (l, r) =>
@@ -53,13 +56,17 @@ object LicenseReport {
         print(language.documentStart(title, reportStyleRules))
         print(makeHeader(language))
         print(language.tableHeader("Category", "License", "Dependency", "Notes"))
-        for (dep <- ordered) {
+        val rendered = (ordered map { dep =>
           val licenseLink = language.createHyperLink(dep.license.url, dep.license.name)
           val moduleLink = dep.homepage match {
             case None      => dep.module.toString
             case Some(url) => language.createHyperLink(url.toExternalForm, dep.module.toString)
           }
-          print(language.tableRow(dep.license.category.name, licenseLink, moduleLink, notes(dep.module) getOrElse ""))
+          (dep.license.category.name, licenseLink, moduleLink, notes(dep.module) getOrElse "")
+        }).distinct
+
+        for ((name, licenseLink, moduleLink, notes) <- rendered) {
+          print(language.tableRow(name, licenseLink, moduleLink, notes))
         }
         print(language.tableEnd)
         print(language.documentEnd)
