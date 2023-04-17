@@ -34,9 +34,9 @@ object LicenseReport {
     }
   }
 
-  def dumpLicenseReport(report: LicenseReport, config: LicenseReportConfiguration): Unit = {
+  def dumpLicenseReport(reportLicenses: Seq[DepLicense], config: LicenseReportConfiguration): Unit = {
     import config._
-    val ordered = report.licenses.filter(l => licenseFilter(l.license.category)) sortWith {
+    val ordered = reportLicenses.filter(l => licenseFilter(l.license.category)) sortWith {
       case (l, r) =>
         if (l.license.category != r.license.category) l.license.category.name < r.license.category.name
         else {
