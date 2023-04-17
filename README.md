@@ -19,7 +19,7 @@ This dumps a report of all the licenses used in a project, with an attempt to or
 The license report plugin can be configured to dump any number of reports, but the default report
 can be controlled via the following keys:
 
-    import com.typesafe.sbt.license.{LicenseInfo, DepModuleInfo}
+    import sbtlicensereport.license.{LicenseInfo, DepModuleInfo}
 
     // Used to name the report file, and in the HTML/Markdown as the
     // title.
