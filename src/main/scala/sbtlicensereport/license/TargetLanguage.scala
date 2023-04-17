@@ -113,24 +113,27 @@ case object ConfluenceWikiMarkup extends TargetLanguage {
   }
 
   def tableRow(
-    firstColumn: String,
-    secondColumn: String,
-    thirdColumn: String,
-    fourthColumn: String): String = s"| $firstColumn | $secondColumn | $thirdColumn | $fourthColumn |\n"
+      firstColumn: String,
+      secondColumn: String,
+      thirdColumn: String,
+      fourthColumn: String
+  ): String = s"| $firstColumn | $secondColumn | $thirdColumn | $fourthColumn |\n"
   def tableEnd: String = "\n"
 
   def markdownEncode(s: String): String = s.flatMap {
     case c if (List('*', '`', '[', ']', '#', '|').contains(c)) => "\\" + c
-    case x => x.toString
+    case x                                                     => x.toString
   }
 
   def escapeHtml(s: String): String = Html.htmlEncode(s).flatMap {
     case '|' => "&#124;" // it would destroy tables!
-    case c => c.toString
+    case c   => c.toString
   }
 
   /** Null handling trim utility function. */
   private[this] def trim(in: String): String = {
-    Option(in).fold("") { string => string.trim }
+    Option(in).fold("") { string =>
+      string.trim
+    }
   }
 }
