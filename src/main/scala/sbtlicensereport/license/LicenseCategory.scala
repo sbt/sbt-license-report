@@ -30,12 +30,28 @@ object LicenseCategory {
   val CC0 = LicenseCategory("CC0", Seq("Creative Commons Zero"))
   val EPL = LicenseCategory("EPL")
   val CDDL = LicenseCategory("CDDL", Seq("Common Development and Distribution"))
+  val BouncyCastle = LicenseCategory("Bouncy Castle License", Seq("Bouncy Castle"))
   val Proprietary = LicenseCategory("Proprietary")
   val NoneSpecified = LicenseCategory("none specified")
   val Unrecognized = LicenseCategory("unrecognized")
 
   val all: Seq[LicenseCategory] =
-    Seq(PublicDomain, CommonPublic, CC0, Mozilla, MIT, BSD, Apache, LGPL, GPLClasspath, GPL, EPL, CDDL, Proprietary)
+    Seq(
+      PublicDomain,
+      CommonPublic,
+      CC0,
+      Mozilla,
+      MIT,
+      BSD,
+      Apache,
+      LGPL,
+      GPLClasspath,
+      GPL,
+      EPL,
+      CDDL,
+      BouncyCastle,
+      Proprietary
+    )
 
   def find(licenses: Seq[LicenseCategory])(licenseName: String): Option[LicenseCategory] =
     licenses.find(_.unapply(licenseName))

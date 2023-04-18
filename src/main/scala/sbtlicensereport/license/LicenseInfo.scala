@@ -55,4 +55,6 @@ object LicenseInfo {
     "http://www.eclipse.org/org/documents/edl-v10.php"
   )
   val MPL = LicenseInfo(LicenseCategory.Mozilla, "Mozilla Public License 2.0", "https://www.mozilla.org/MPL/2.0/")
+  val BouncyCastle =
+    LicenseInfo(LicenseCategory.BouncyCastle, "Bouncy Castle Licence", "https://www.bouncycastle.org/license.html")
 }
