@@ -2,7 +2,7 @@ name := "example"
 
 licenseReportTitle := "lreport"
 
-licenseConfigurations := Set("compile")
+licenseConfigurations := Set(Compile)
 
 licenseSelection := Seq(LicenseCategory.BSD)
 
