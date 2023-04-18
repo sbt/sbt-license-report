@@ -16,11 +16,11 @@ licenseReportNotes := { case _ => "Default Notes" }
 licenseReportConfigurations +=
   LicenseReportConfiguration(
     "test-config",
-     Seq(Html),
-     language => language.header1("Testing the configuration"),
-     dep => Option("Default notes"),
-     category => category == LicenseCategory.BSD,
-     licenseReportDir.value
+    Seq(Html),
+    language => language.header1("Testing the configuration"),
+    dep => Option("Default notes"),
+    category => category == LicenseCategory.BSD,
+    licenseReportDir.value
   )
 
 val check = taskKey[Unit]("check the license report.")
@@ -37,6 +37,6 @@ check := {
       System.err.println("-- Report --")
       System.err.println(report)
       throw t
-  } 
+  }
   ()
 }
