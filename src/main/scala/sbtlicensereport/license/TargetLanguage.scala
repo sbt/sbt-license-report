@@ -2,7 +2,7 @@ package sbtlicensereport
 package license
 
 /**
- * Hooks for generating "rich" text documents.  Borrowed from scala/make-release-notes
+ * Hooks for generating "rich" text documents. Borrowed from scala/make-release-notes
  */
 sealed trait TargetLanguage {
   def documentStart(title: String, reportStyleRules: Option[String]): String
@@ -77,8 +77,8 @@ case object Html extends TargetLanguage {
     <tbody>"""
   def tableRow(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String =
     s"""<tr><td>${firstColumn}&nbsp;</td><td>${secondColumn}&nbsp;</td><td>${thirdColumn}&nbsp;</td><td>${htmlEncode(
-      fourthColumn
-    )}</td></tr>"""
+        fourthColumn
+      )}</td></tr>"""
   def tableEnd: String = "</tbody></table>"
 
   def htmlEncode(s: String) = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(s)

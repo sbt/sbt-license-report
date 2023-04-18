@@ -28,7 +28,7 @@ object LicenseReport {
     Using.fileWriter(java.nio.charset.Charset.defaultCharset, false)(file) { writer =>
       def println(msg: Any): Unit = {
         writer.write(msg.toString)
-        //writer.newLine()
+        // writer.newLine()
       }
       f(println _)
     }
@@ -39,15 +39,14 @@ object LicenseReport {
       config: LicenseReportConfiguration
   ): Unit = {
     import config._
-    val ordered = reportLicenses.filter(l => licenseFilter(l.license.category)) sortWith {
-      case (l, r) =>
-        if (l.license.category != r.license.category) l.license.category.name < r.license.category.name
+    val ordered = reportLicenses.filter(l => licenseFilter(l.license.category)) sortWith { case (l, r) =>
+      if (l.license.category != r.license.category) l.license.category.name < r.license.category.name
+      else {
+        if (l.license.name != r.license.name) l.license.name < r.license.name
         else {
-          if (l.license.name != r.license.name) l.license.name < r.license.name
-          else {
-            l.module.toString < r.module.toString
-          }
+          l.module.toString < r.module.toString
         }
+      }
     }
     // TODO - Make one of these for every configuration?
     for (language <- languages) {
@@ -93,8 +92,8 @@ object LicenseReport {
   }
 
   /**
-   * given a set of categories and an array of ivy-resolved licenses, pick the first one from our list, or
-   *  default to 'none specified'.
+   * given a set of categories and an array of ivy-resolved licenses, pick the first one from our list, or default to
+   * 'none specified'.
    */
   private def pickLicense(
       categories: Seq[LicenseCategory]
@@ -133,11 +132,10 @@ object LicenseReport {
         .getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
       homepage = Option
         .apply(desc.getHomePage)
-        .flatMap(
-          loc =>
-            nonFatalCatch[Option[URL]]
-              .withApply((_: Throwable) => Option.empty[URL])
-              .apply(Some(url(loc)))
+        .flatMap(loc =>
+          nonFatalCatch[Option[URL]]
+            .withApply((_: Throwable) => Option.empty[URL])
+            .apply(Some(url(loc)))
         )
       // TODO - grab configurations.
     } yield DepLicense(getModuleInfo(dep), pickLicense(categories)(licenses), homepage, filteredConfigs)

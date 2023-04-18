@@ -1,12 +1,12 @@
 name := "example"
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.5.4"
-libraryDependencies += "junit"                      % "junit"            % "4.12"  % "test"
+libraryDependencies += "junit"                      % "junit"            % "4.12" % "test"
 
 excludeDependencies += "org.scala-lang"
 
-licenseDepExclusions := {
-  case DepModuleInfo("junit", _, _) => true
+licenseDepExclusions := { case DepModuleInfo("junit", _, _) =>
+  true
 }
 
 TaskKey[Unit]("check") := {

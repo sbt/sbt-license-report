@@ -6,7 +6,7 @@ case class LicenseCategory(name: String, synonyms: Seq[String] = Nil) {
   def unapply(license: String): Boolean = {
     val names = name +: synonyms
     names exists { n =>
-      (license.toLowerCase contains n.toLowerCase)
+      license.toLowerCase contains n.toLowerCase
     }
   }
 
@@ -18,8 +18,8 @@ object LicenseCategory {
   object GPLClasspath extends LicenseCategory("GPL with Classpath Extension") {
     override def unapply(license: String): Boolean = {
       val name = license.toLowerCase
-      ((name.contains("gpl") || name.contains("general public license")) &&
-      name.contains("classpath"))
+      (name.contains("gpl") || name.contains("general public license")) &&
+      name.contains("classpath")
     }
   }
   val GPL = LicenseCategory("GPL", Seq("general public license"))
