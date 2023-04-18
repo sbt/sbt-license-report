@@ -20,7 +20,9 @@ licenseReportConfigurations +=
     language => language.header1("Testing the configuration"),
     dep => Option("Default notes"),
     category => category == LicenseCategory.BSD,
-    licenseReportDir.value
+    licenseReportDir.value,
+    None,
+    Seq(Column.Category, Column.License, Column.Dependency)
   )
 
 val check = taskKey[Unit]("check the license report.")

@@ -10,7 +10,13 @@ import sbtlicensereport.SbtCompat._
 case class DepModuleInfo(organization: String, name: String, version: String) {
   override def toString = s"${organization} # ${name} # ${version}"
 }
-case class DepLicense(module: DepModuleInfo, license: LicenseInfo, homepage: Option[URL], configs: Set[String]) {
+case class DepLicense(
+    module: DepModuleInfo,
+    license: LicenseInfo,
+    homepage: Option[URL],
+    configs: Set[String],
+    originatingModule: DepModuleInfo
+) {
   override def toString =
     s"$module ${homepage.map(url => s" from $url")} on $license in ${configs.mkString("(", ",", ")")}"
 }
@@ -54,18 +60,17 @@ object LicenseReport {
       withPrintableFile(reportFile) { print =>
         print(language.documentStart(title, reportStyleRules))
         print(makeHeader(language))
-        print(language.tableHeader("Category", "License", "Dependency", "Notes"))
+        print(language.tableHeader("Notes", config.licenseReportColumns.map(_.columnName): _*))
         val rendered = (ordered map { dep =>
-          val licenseLink = language.createHyperLink(dep.license.url, dep.license.name)
-          val moduleLink = dep.homepage match {
-            case None      => dep.module.toString
-            case Some(url) => language.createHyperLink(url.toExternalForm, dep.module.toString)
-          }
-          (dep.license.category.name, licenseLink, moduleLink, notes(dep.module) getOrElse "")
+          val notesRendered = notes(dep.module) getOrElse ""
+          (
+            notesRendered,
+            config.licenseReportColumns map (_.render(dep, language))
+          )
         }).distinct
 
-        for ((name, licenseLink, moduleLink, notes) <- rendered) {
-          print(language.tableRow(name, licenseLink, moduleLink, notes))
+        for ((notes, rest) <- rendered) {
+          print(language.tableRow(notes, rest: _*))
         }
         print(language.tableEnd)
         print(language.documentEnd)
@@ -84,11 +89,12 @@ object LicenseReport {
       licenseSelection: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
       exclusions: DepModuleInfo => Option[Boolean],
+      originatingModule: DepModuleInfo,
       log: Logger
   ): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
-    makeReportImpl(report, configs, licenseSelection, overrides, exclusions, log)
+    makeReportImpl(report, configs, licenseSelection, overrides, exclusions, originatingModule, log)
   }
 
   /**
@@ -118,7 +124,8 @@ object LicenseReport {
   private def pickLicenseForDep(
       dep: IvyNode,
       configs: Set[String],
-      categories: Seq[LicenseCategory]
+      categories: Seq[LicenseCategory],
+      originatingModule: DepModuleInfo
   ): Option[DepLicense] =
     for {
       d <- Option(dep)
@@ -138,17 +145,24 @@ object LicenseReport {
             .apply(Some(url(loc)))
         )
       // TODO - grab configurations.
-    } yield DepLicense(getModuleInfo(dep), pickLicense(categories)(licenses), homepage, filteredConfigs)
+    } yield DepLicense(
+      getModuleInfo(dep),
+      pickLicense(categories)(licenses),
+      homepage,
+      filteredConfigs,
+      originatingModule
+    )
 
   private def getLicenses(
       report: ResolveReport,
       configs: Set[String] = Set.empty,
-      categories: Seq[LicenseCategory] = LicenseCategory.all
+      categories: Seq[LicenseCategory] = LicenseCategory.all,
+      originatingModule: DepModuleInfo
   ): Seq[DepLicense] = {
     import collection.JavaConverters._
     for {
       dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
-      report <- pickLicenseForDep(dep, configs, categories)
+      report <- pickLicenseForDep(dep, configs, categories, originatingModule)
     } yield report
   }
 
@@ -158,9 +172,10 @@ object LicenseReport {
       categories: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
       exclusions: DepModuleInfo => Option[Boolean],
+      originatingModule: DepModuleInfo,
       log: Logger
   ): LicenseReport = {
-    val licenses = getLicenses(report, configs, categories) filterNot { dep =>
+    val licenses = getLicenses(report, configs, categories, originatingModule) filterNot { dep =>
       exclusions(dep.module).getOrElse(false)
     } map { l =>
       overrides(l.module) match {
