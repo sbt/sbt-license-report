@@ -51,6 +51,12 @@ can be controlled via the following keys:
         LicenseInfo(LicenseCategory.BSD, "BSD-3-Clause", "http://opensource.org/licenses/BSD-3-Clause")
     }
 
+    // Want to exclude any artifacts from org.scala-lang organization. Note that transitive dependencies
+    // of a filtered DepModuleInfo will NOT get filtered out
+    licenseDepExclusions := {
+        case DepModuleInfo("org.scala-lang", _, _) => true
+    }
+
 # Releasing
 
 This plugin uses [sbt-ci-release](https://github.com/sbt/sbt-ci-release). To
