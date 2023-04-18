@@ -77,11 +77,12 @@ object LicenseReport {
       configs: Set[String],
       licenseSelection: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
+      exclusions: DepModuleInfo => Option[Boolean],
       log: Logger
   ): LicenseReport = {
     val (report, err) = resolve(module, log)
     err foreach (x => throw x) // Bail on error
-    makeReportImpl(report, configs, licenseSelection, overrides, log)
+    makeReportImpl(report, configs, licenseSelection, overrides, exclusions, log)
   }
 
   /**
@@ -151,9 +152,12 @@ object LicenseReport {
       configs: Set[String],
       categories: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
+      exclusions: DepModuleInfo => Option[Boolean],
       log: Logger
   ): LicenseReport = {
-    val licenses = getLicenses(report, configs, categories) map { l =>
+    val licenses = getLicenses(report, configs, categories) filterNot { dep =>
+      exclusions(dep.module).getOrElse(false)
+    } map { l =>
       overrides(l.module) match {
         case Some(o) => l.copy(license = o)
         case _       => l

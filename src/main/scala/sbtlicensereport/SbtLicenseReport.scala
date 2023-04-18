@@ -15,6 +15,8 @@ object SbtLicenseReport extends AutoPlugin {
     def LicenseCategory = sbtlicensereport.license.LicenseCategory
     type TargetLanguage = sbtlicensereport.license.TargetLanguage
     type LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
+    type DepModuleInfo = sbtlicensereport.license.DepModuleInfo
+    val DepModuleInfo = sbtlicensereport.license.DepModuleInfo
     def LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
     def Html = sbtlicensereport.license.Html
     def MarkDown = sbtlicensereport.license.MarkDown
@@ -48,6 +50,9 @@ object SbtLicenseReport extends AutoPlugin {
     val licenseOverrides = settingKey[PartialFunction[DepModuleInfo, LicenseInfo]](
       "A list of license overrides for artifacts with bad infomration on maven."
     )
+    val licenseDepExclusions = settingKey[PartialFunction[DepModuleInfo, Boolean]](
+      "A partial function of which dependencies you want to exclude"
+    )
     val licenseFilter =
       settingKey[LicenseCategory => Boolean]("Configuration for what licenses to include in the report, by default.")
   }
@@ -71,15 +76,18 @@ object SbtLicenseReport extends AutoPlugin {
       // Here we use an empty partial function
       licenseReportNotes := PartialFunction.empty,
       licenseOverrides := PartialFunction.empty,
+      licenseDepExclusions := PartialFunction.empty,
       licenseFilter := TypeFunctions.const(true),
       updateLicenses := {
         val ignore = update.value
         val overrides = licenseOverrides.value.lift
+        val depExclusions = licenseDepExclusions.value.lift
         license.LicenseReport.makeReport(
           ivyModule.value,
           licenseConfigurations.value,
           licenseSelection.value,
           overrides,
+          depExclusions,
           streams.value.log
         )
       },
