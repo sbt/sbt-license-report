@@ -25,6 +25,3 @@ jobs:
           cache: 'sbt'
 
       - run: sbt -v +scripted
-      - name: Scalafmt
-        shell: bash
-        run: sbt -v clean scalafmtSbtCheck scalafmtCheckAll
