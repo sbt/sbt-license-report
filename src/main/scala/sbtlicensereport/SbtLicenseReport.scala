@@ -43,10 +43,10 @@ object SbtLicenseReport extends AutoPlugin {
       settingKey[TargetLanguage => String]("A mechanism of generating the header for the license report file.")
     val licenseReportTypes = settingKey[Seq[TargetLanguage]]("The license report files to generate.")
     val licenseReportNotes = settingKey[PartialFunction[DepModuleInfo, String]](
-      "A partial functoin that will obtain license report notes based on module."
+      "A partial function that will obtain license report notes based on module."
     )
     val licenseOverrides = settingKey[PartialFunction[DepModuleInfo, LicenseInfo]](
-      "A list of license overrides for artifacts with bad infomration on maven."
+      "A list of license overrides for artifacts with bad information on maven."
     )
     val licenseFilter =
       settingKey[LicenseCategory => Boolean]("Configuration for what licenses to include in the report, by default.")
