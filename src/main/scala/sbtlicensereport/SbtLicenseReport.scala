@@ -68,16 +68,9 @@ object SbtLicenseReport extends AutoPlugin {
     updateLicenses.all(ScopeFilter(inAnyProject))
   }
 
-  override def projectSettings: Seq[Setting[_]] =
+  override lazy val projectSettings: Seq[Setting[_]] =
     Seq(
-      licenseSelection := LicenseCategory.all,
-      licenseConfigurations := Set("compile", "test"),
       licenseReportTitle := s"${normalizedName.value}-licenses",
-      // Here we use an empty partial function
-      licenseReportNotes := PartialFunction.empty,
-      licenseOverrides := PartialFunction.empty,
-      licenseDepExclusions := PartialFunction.empty,
-      licenseFilter := TypeFunctions.const(true),
       updateLicenses := {
         val ignore = update.value
         val overrides = licenseOverrides.value.lift
@@ -95,8 +88,6 @@ object SbtLicenseReport extends AutoPlugin {
       licenseReportMakeHeader := (language => language.header1(licenseReportTitle.value)),
       // TODO - Maybe we need a general purpose reporting directory
       licenseReportDir := target.value / "license-reports",
-      licenseReportStyleRules := None,
-      licenseReportTypes := Seq(MarkDown, Html, Csv),
       licenseReportConfigurations := {
         val dir = licenseReportDir.value
         val styleRules = licenseReportStyleRules.value
@@ -136,4 +127,16 @@ object SbtLicenseReport extends AutoPlugin {
         dir
       }
     )
+
+  override lazy val globalSettings = Seq(
+    licenseSelection := LicenseCategory.all,
+    licenseConfigurations := Set("compile", "test"),
+    // Here we use an empty partial function
+    licenseReportNotes := PartialFunction.empty,
+    licenseOverrides := PartialFunction.empty,
+    licenseDepExclusions := PartialFunction.empty,
+    licenseFilter := TypeFunctions.const(true),
+    licenseReportStyleRules := None,
+    licenseReportTypes := Seq(MarkDown, Html, Csv)
+  )
 }
