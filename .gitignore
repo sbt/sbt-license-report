@@ -1,24 +1,20 @@
-*.iml
-*.lock
-*.komodoproject
-.DS_Store
-.history
-.idea
-.classpath
-.cache
-.project/
-.project
-.idea/
-.idea_modules/
-.settings/
-.target/
-project/boot/
-workspace/
-repository/
+### SBT template
+# Simple Build Tool
+# http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
+
+dist/*
 target/
-logs/
-.settings
-.classpath
-.project
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+.history
 .cache
-bin/
+.lib/
+
+### Scala template
+*.class
+*.log
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
