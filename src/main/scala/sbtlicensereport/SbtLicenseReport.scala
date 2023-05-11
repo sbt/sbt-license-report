@@ -16,7 +16,9 @@ object SbtLicenseReport extends AutoPlugin {
     type TargetLanguage = sbtlicensereport.license.TargetLanguage
     type LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
     type DepModuleInfo = sbtlicensereport.license.DepModuleInfo
+    type Column = sbtlicensereport.license.Column
     val DepModuleInfo = sbtlicensereport.license.DepModuleInfo
+    val Column = sbtlicensereport.license.Column
     def LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
     def Html = sbtlicensereport.license.Html
     def MarkDown = sbtlicensereport.license.MarkDown
@@ -34,6 +36,8 @@ object SbtLicenseReport extends AutoPlugin {
     val dumpLicenseReportAnyProject = taskKey[File](
       "Dumps a report file against all projects of the license report (using the target language) and combines it into a single file."
     )
+    val licenseReportColumns =
+      settingKey[Seq[Column]]("Additional columns to be added to the final report")
     val licenseReportDir = settingKey[File]("The location where we'll write the license reports.")
     val licenseReportStyleRules = settingKey[Option[String]]("The style rules for license report styling.")
     val licenseReportTitle = settingKey[String]("The name of the license report.")
@@ -75,12 +79,14 @@ object SbtLicenseReport extends AutoPlugin {
         val ignore = update.value
         val overrides = licenseOverrides.value.lift
         val depExclusions = licenseDepExclusions.value.lift
+        val originatingModule = DepModuleInfo(organization.value, name.value, version.value)
         license.LicenseReport.makeReport(
           ivyModule.value,
           licenseConfigurations.value,
           licenseSelection.value,
           overrides,
           depExclusions,
+          originatingModule,
           streams.value.log
         )
       },
@@ -101,7 +107,8 @@ object SbtLicenseReport extends AutoPlugin {
           notesLookup,
           licenseFilter.value,
           dir,
-          styleRules
+          styleRules,
+          licenseReportColumns.value
         )
         Seq(config)
       },
@@ -137,6 +144,7 @@ object SbtLicenseReport extends AutoPlugin {
     licenseDepExclusions := PartialFunction.empty,
     licenseFilter := TypeFunctions.const(true),
     licenseReportStyleRules := None,
-    licenseReportTypes := Seq(MarkDown, Html, Csv)
+    licenseReportTypes := Seq(MarkDown, Html, Csv),
+    licenseReportColumns := Seq(Column.Category, Column.License, Column.Dependency)
   )
 }

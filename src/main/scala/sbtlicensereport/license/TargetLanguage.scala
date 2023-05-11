@@ -18,10 +18,10 @@ sealed trait TargetLanguage {
   def header1(msg: String): String
 
   /** The syntax for the header of a table. */
-  def tableHeader(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String
+  def tableHeader(notes: String, columns: String*): String
 
   /** The syntax for a row of a table. */
-  def tableRow(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String
+  def tableRow(notes: String, columns: String*): String
 
   /** And a "table" */
   def tableEnd: String
@@ -38,13 +38,17 @@ case object MarkDown extends TargetLanguage {
     s"[$content]($link)"
   def blankLine(): String = "\n"
   def header1(msg: String): String = s"# $msg\n"
-  def tableHeader(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String =
-    s"""
-$firstColumn | $secondColumn | $thirdColumn | $fourthColumn
---- | --- | --- | ---
-"""
-  def tableRow(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String =
-    s"$firstColumn | $secondColumn | $thirdColumn | <notextile>${escapeHtml(fourthColumn)}</notextile>\n"
+  def tableHeader(notes: String, columns: String*): String = {
+    val all = columns :+ notes
+    val firstRow = "\n" + all.mkString(" | ")
+    val secondRow = List.fill(all.size - 1)("").mkString("--- |", " --- |", " ---")
+    firstRow ++ "\n" ++ secondRow + "\n"
+  }
+  def tableRow(notes: String, columns: String*): String = {
+    val main = columns.mkString("", " | ", " | ")
+    val notesEscaped = s"<notextile>${escapeHtml(notes)}</notextile>\n"
+    main ++ notesEscaped
+  }
   def tableEnd: String = "\n"
 
   def markdownEncode(s: String): String = s.flatMap {
@@ -71,14 +75,21 @@ case object Html extends TargetLanguage {
     s"""<a href="$link">$content</a>"""
   def blankLine(): String = "<p>&nbsp;</p>"
   def header1(msg: String): String = s"<h1>$msg</h1>"
-  def tableHeader(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String =
+  def tableHeader(notes: String, columns: String*): String = {
+    val all = columns :+ notes
+    val th = all.mkString("<th>", "</th><th>", "</th>")
     s"""<table border="0" cellspacing="0" cellpading="1">
-      <thead><tr><th>$firstColumn</th><th>$secondColumn</th><th>$thirdColumn</th><th>$fourthColumn</th></tr></thead>
+      <thead><tr>$th</tr></thead>
     <tbody>"""
-  def tableRow(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String =
-    s"""<tr><td>${firstColumn}&nbsp;</td><td>${secondColumn}&nbsp;</td><td>${thirdColumn}&nbsp;</td><td>${htmlEncode(
-        fourthColumn
-      )}</td></tr>"""
+  }
+  def tableRow(notes: String, columns: String*): String = {
+    val main = columns.mkString("""<tr><td>""", """&nbsp;</td><td>""", """&nbsp;</td><td>""")
+    val notesEscaped = s"${htmlEncode(
+        notes
+      )}</td></tr>"
+
+    main + notesEscaped
+  }
   def tableEnd: String = "</tbody></table>"
 
   def htmlEncode(s: String) = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(s)
@@ -93,10 +104,15 @@ case object Csv extends TargetLanguage {
   }
   def blankLine(): String = ""
   def header1(msg: String): String = ""
-  def tableHeader(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String =
-    tableRow(firstColumn, secondColumn, thirdColumn, fourthColumn)
-  def tableRow(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String =
-    s"""${csvEncode(firstColumn)},${csvEncode(secondColumn)},${csvEncode(thirdColumn)},${csvEncode(fourthColumn)}\n"""
+  def tableHeader(notes: String, columns: String*): String = {
+    tableRow(notes, columns: _*)
+  }
+  def tableRow(notes: String, columns: String*): String = {
+    val all = columns :+ notes
+    val escaped = all map csvEncode
+    escaped.mkString("", ",", "\n")
+  }
+
   def tableEnd: String = ""
   def csvEncode(s: String): String = org.apache.commons.lang3.StringEscapeUtils.escapeCsv(s)
 }
@@ -108,16 +124,14 @@ case object ConfluenceWikiMarkup extends TargetLanguage {
   def createHyperLink(link: String, content: String): String = s"[${trim(content)}|${trim(link)}]"
   def blankLine(): String = "\n"
   def header1(msg: String): String = s"h1.$msg\n"
-  def tableHeader(firstColumn: String, secondColumn: String, thirdColumn: String, fourthColumn: String): String = {
-    s"|| $firstColumn || $secondColumn || $thirdColumn || $fourthColumn ||\n"
+  def tableHeader(notes: String, columns: String*): String = {
+    val all = columns :+ notes
+    all.mkString("|| ", " || ", " ||\n")
   }
-
-  def tableRow(
-      firstColumn: String,
-      secondColumn: String,
-      thirdColumn: String,
-      fourthColumn: String
-  ): String = s"| $firstColumn | $secondColumn | $thirdColumn | $fourthColumn |\n"
+  def tableRow(notes: String, columns: String*): String = {
+    val all = columns :+ notes
+    all.mkString("| ", " | ", " |\n")
+  }
   def tableEnd: String = "\n"
 
   def markdownEncode(s: String): String = s.flatMap {
