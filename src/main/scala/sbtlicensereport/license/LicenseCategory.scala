@@ -13,7 +13,7 @@ case class LicenseCategory(name: String, synonyms: Seq[String] = Nil) {
 }
 object LicenseCategory {
   val BSD = LicenseCategory("BSD")
-  val Apache = LicenseCategory("Apache", Seq("asf"))
+  val Apache = LicenseCategory("Apache", Seq("asf", "ALv2"))
   val LGPL = LicenseCategory("LGPL", Seq("lesser general public license"))
   object GPLClasspath extends LicenseCategory("GPL with Classpath Extension") {
     override def unapply(license: String): Boolean = {
