@@ -12,18 +12,18 @@ object SbtLicenseReport extends AutoPlugin {
   object autoImportImpl {
     // Types and objects to auto-expose
     type LicenseCategory = sbtlicensereport.license.LicenseCategory
-    def LicenseCategory = sbtlicensereport.license.LicenseCategory
+    val LicenseCategory = sbtlicensereport.license.LicenseCategory
     type TargetLanguage = sbtlicensereport.license.TargetLanguage
     type LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
     type DepModuleInfo = sbtlicensereport.license.DepModuleInfo
     type Column = sbtlicensereport.license.Column
     val DepModuleInfo = sbtlicensereport.license.DepModuleInfo
     val Column = sbtlicensereport.license.Column
-    def LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
-    def Html = sbtlicensereport.license.Html
-    def MarkDown = sbtlicensereport.license.MarkDown
-    def Csv = sbtlicensereport.license.Csv
-    def ConfluenceWikiMarkup = sbtlicensereport.license.ConfluenceWikiMarkup
+    val LicenseReportConfiguration = sbtlicensereport.license.LicenseReportConfiguration
+    val Html = sbtlicensereport.license.Html
+    val MarkDown = sbtlicensereport.license.MarkDown
+    val Csv = sbtlicensereport.license.Csv
+    val ConfluenceWikiMarkup = sbtlicensereport.license.ConfluenceWikiMarkup
 
     // Keys
     val updateLicenses = taskKey[LicenseReport]("Construct a report of used licenses in a build.")
