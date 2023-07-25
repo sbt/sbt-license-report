@@ -22,7 +22,7 @@ In either case the results will be merged into a single report file in a format 
 
 If you want to check that only certain licenses are used in a project, you can use
 
-     > checkLicenses
+     > licenseCheck
 
 This ensures all licenses fall into one of the categories given by `licenseCheckAllow` which defaults
 to a set of commonly allowed [OSS licenses](./src/main/scala/sbtlicensereport/SbtLicenseReport.scala#L173).
