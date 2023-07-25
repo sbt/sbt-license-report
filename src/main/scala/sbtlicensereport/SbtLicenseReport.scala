@@ -36,6 +36,11 @@ object SbtLicenseReport extends AutoPlugin {
     val dumpLicenseReportAnyProject = taskKey[File](
       "Dumps a report file against all projects of the license report (using the target language) and combines it into a single file."
     )
+    val checkLicenses = taskKey[Unit]("Checks that all licenses are allowed. Fails if other licenses are found.")
+    val checkLicensesAggregate =
+      taskKey[Unit]("Checks that all licenses are allowed in a project aggregate. Fails if other licenses are found.")
+    val checkLicensesAnyProject =
+      taskKey[Unit]("Checks that all licenses are allowed in any project. Fails if other licenses are found.")
     val licenseReportColumns =
       settingKey[Seq[Column]]("Additional columns to be added to the final report")
     val licenseReportDir = settingKey[File]("The location where we'll write the license reports.")
@@ -59,6 +64,7 @@ object SbtLicenseReport extends AutoPlugin {
     )
     val licenseFilter =
       settingKey[LicenseCategory => Boolean]("Configuration for what licenses to include in the report, by default.")
+    val licenseCheckAllow = settingKey[Seq[LicenseCategory]]("Licenses that are allowed to pass in checkLicenses.")
   }
   // Workaround for broken autoImport in sbt 0.13.5
   val autoImport = autoImportImpl
@@ -132,6 +138,24 @@ object SbtLicenseReport extends AutoPlugin {
         for (config <- licenseReportConfigurations.value)
           LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses), config)
         dir
+      },
+      checkLicenses := {
+        val log = streams.value.log
+        val report = updateLicenses.value
+        val allowed = licenseCheckAllow.value
+        LicenseReport.checkLicenses(report.licenses, allowed, log)
+      },
+      checkLicensesAggregate := {
+        val log = streams.value.log
+        val reports = aggregateUpdateLicenses.value
+        val allowed = licenseCheckAllow.value
+        LicenseReport.checkLicenses(reports.flatMap(_.licenses), allowed, log)
+      },
+      checkLicensesAnyProject := {
+        val log = streams.value.log
+        val reports = anyProjectUpdateLicenses.value
+        val allowed = licenseCheckAllow.value
+        LicenseReport.checkLicenses(reports.flatMap(_.licenses), allowed, log)
       }
     )
 
@@ -145,6 +169,16 @@ object SbtLicenseReport extends AutoPlugin {
     licenseFilter := TypeFunctions.const(true),
     licenseReportStyleRules := None,
     licenseReportTypes := Seq(MarkDown, Html, Csv),
-    licenseReportColumns := Seq(Column.Category, Column.License, Column.Dependency)
+    licenseReportColumns := Seq(Column.Category, Column.License, Column.Dependency),
+    licenseCheckAllow := Seq(
+      LicenseCategory.Apache,
+      LicenseCategory.BouncyCastle,
+      LicenseCategory.BSD,
+      LicenseCategory.CC0,
+      LicenseCategory.EPL,
+      LicenseCategory.MIT,
+      LicenseCategory.Mozilla,
+      LicenseCategory.PublicDomain
+    )
   )
 }

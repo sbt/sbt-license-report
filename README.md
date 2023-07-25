@@ -18,6 +18,16 @@ If you happen to be using a multi project sbt build, you can instead use `dumpLi
 from `aggregate` on the root project) or `dumpLicenseReportAnyProject` (which collects the results for all projects in the sbt build).
 In either case the results will be merged into a single report file in a format that mirrors `dumpLicenseReport`.
 
+### Check licenses
+
+If you want to check that only certain licenses are used in a project, you can use
+
+     > checkLicenses
+
+This ensures all licenses fall into one of the categories given by `licenseCheckAllow` which defaults
+to a set of commonly allowed [OSS licenses](./src/main/scala/sbtlicensereport/SbtLicenseReport.scala#L173).
+Analogous to the variants of `dumpLicenseReport`, `checkLicensesAggregate` and `checkLicensesAnyProject` exist.
+
 ## Configuration
 
 The license report plugin can be configured to dump any number of reports, but the default report
