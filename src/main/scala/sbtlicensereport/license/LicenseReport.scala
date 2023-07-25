@@ -87,8 +87,13 @@ object LicenseReport {
       case dep if !allowed.contains(dep.license.category) => dep
     }
     if (violators.nonEmpty) {
-      log.error("Found non-allowed licenses among the dependencies:")
-      violators.sorted.foreach(viol => log.error(s"${viol.license.category.name}: ${viol.module.toString}"))
+      log.error(
+        violators.sorted
+          .map(v => (v.license, v.module))
+          .distinct
+          .map { case (license, module) => s"${license.category.name}: ${module.toString}" }
+          .mkString("Found non-allowed licenses among the dependencies:\n", "\n", "")
+      )
       throw new sbt.MessageOnlyException(s"Found non-allowed licenses!")
     } else {
       log.info("Found only allowed licenses among the dependencies!")

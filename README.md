@@ -26,7 +26,6 @@ If you want to check that only certain licenses are used in a project, you can u
 
 This ensures all licenses fall into one of the categories given by `licenseCheckAllow` which defaults
 to a set of commonly allowed [OSS licenses](./src/main/scala/sbtlicensereport/SbtLicenseReport.scala#L173).
-Analogous to the variants of `dumpLicenseReport`, `checkLicensesAggregate` and `checkLicensesAnyProject` exist.
 
 ## Configuration
 
