@@ -21,6 +21,18 @@ case class DepLicense(
     s"$module ${homepage.map(url => s" from $url")} on $license in ${configs.mkString("(", ",", ")")}"
 }
 
+object DepLicense {
+  implicit val ordering: Ordering[DepLicense] = Ordering.fromLessThan { case (l, r) =>
+    if (l.license.category != r.license.category) l.license.category.name < r.license.category.name
+    else {
+      if (l.license.name != r.license.name) l.license.name < r.license.name
+      else {
+        l.module.toString < r.module.toString
+      }
+    }
+  }
+}
+
 case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
   override def toString = s"""|## License Report ##
                               |${licenses.mkString("\t", "\n\t", "\n")}
@@ -45,15 +57,7 @@ object LicenseReport {
       config: LicenseReportConfiguration
   ): Unit = {
     import config._
-    val ordered = reportLicenses.filter(l => licenseFilter(l.license.category)) sortWith { case (l, r) =>
-      if (l.license.category != r.license.category) l.license.category.name < r.license.category.name
-      else {
-        if (l.license.name != r.license.name) l.license.name < r.license.name
-        else {
-          l.module.toString < r.module.toString
-        }
-      }
-    }
+    val ordered = reportLicenses.filter(l => licenseFilter(l.license.category)).sorted
     // TODO - Make one of these for every configuration?
     for (language <- languages) {
       val reportFile = new File(config.reportDir, s"${title}.${language.ext}")
@@ -75,6 +79,24 @@ object LicenseReport {
         print(language.tableEnd)
         print(language.documentEnd)
       }
+    }
+  }
+
+  def checkLicenses(reportLicenses: Seq[DepLicense], allowed: Seq[LicenseCategory], log: Logger): Unit = {
+    val violators = reportLicenses.collect {
+      case dep if !allowed.contains(dep.license.category) => dep
+    }
+    if (violators.nonEmpty) {
+      log.error(
+        violators.sorted
+          .map(v => (v.license, v.module))
+          .distinct
+          .map { case (license, module) => s"${license.category.name}: ${module.toString}" }
+          .mkString("Found non-allowed licenses among the dependencies:\n", "\n", "")
+      )
+      throw new sbt.MessageOnlyException(s"Found non-allowed licenses!")
+    } else {
+      log.info("Found only allowed licenses among the dependencies!")
     }
   }
 
