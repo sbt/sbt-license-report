@@ -82,10 +82,17 @@ object LicenseReport {
     }
   }
 
-  def checkLicenses(reportLicenses: Seq[DepLicense], allowed: Seq[LicenseCategory], log: Logger): Unit = {
-    val violators = reportLicenses.collect {
-      case dep if !allowed.contains(dep.license.category) => dep
-    }
+  def checkLicenses(
+      reportLicenses: Seq[DepLicense],
+      exclude: PartialFunction[DepModuleInfo, Boolean],
+      allowed: Seq[LicenseCategory],
+      log: Logger
+  ): Unit = {
+    val violators =
+      reportLicenses.filterNot(dl => exclude.applyOrElse(dl.module, (_: DepModuleInfo) => false)).collect {
+        case dep if !allowed.contains(dep.license.category) => dep
+      }
+
     if (violators.nonEmpty) {
       log.error(
         violators.sorted
