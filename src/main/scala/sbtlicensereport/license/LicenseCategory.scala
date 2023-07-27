@@ -31,6 +31,7 @@ object LicenseCategory {
   val EPL = LicenseCategory("EPL", Seq("Eclipse Public License"))
   val CDDL = LicenseCategory("CDDL", Seq("Common Development and Distribution"))
   val BouncyCastle = LicenseCategory("Bouncy Castle License", Seq("Bouncy Castle"))
+  val Unicode = LicenseCategory("Unicode/ICU License", Seq("Unicode", "ICU"))
   val Proprietary = LicenseCategory("Proprietary")
   val NoneSpecified = LicenseCategory("none specified")
   val Unrecognized = LicenseCategory("unrecognized")
@@ -50,6 +51,7 @@ object LicenseCategory {
       EPL,
       CDDL,
       BouncyCastle,
+      Unicode,
       Proprietary
     )
 
