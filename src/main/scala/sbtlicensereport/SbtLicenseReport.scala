@@ -163,7 +163,8 @@ object SbtLicenseReport extends AutoPlugin {
       LicenseCategory.MIT,
       LicenseCategory.Mozilla,
       LicenseCategory.PublicDomain,
-      LicenseCategory.Unicode
+      LicenseCategory.Unicode,
+      LicenseCategory.IBM
     )
   )
 }

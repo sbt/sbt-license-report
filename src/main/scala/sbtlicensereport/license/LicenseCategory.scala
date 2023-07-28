@@ -32,6 +32,7 @@ object LicenseCategory {
   val CDDL = LicenseCategory("CDDL", Seq("Common Development and Distribution"))
   val BouncyCastle = LicenseCategory("Bouncy Castle License", Seq("Bouncy Castle"))
   val Unicode = LicenseCategory("Unicode/ICU License", Seq("Unicode", "ICU"))
+  val IBM = LicenseCategory("IBM International Program License Agreement")
   val Proprietary = LicenseCategory("Proprietary")
   val NoneSpecified = LicenseCategory("none specified")
   val Unrecognized = LicenseCategory("unrecognized")
@@ -52,6 +53,7 @@ object LicenseCategory {
       CDDL,
       BouncyCastle,
       Unicode,
+      IBM,
       Proprietary
     )
 
