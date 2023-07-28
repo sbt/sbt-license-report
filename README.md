@@ -25,7 +25,8 @@ If you want to check that only certain licenses are used in a project, you can u
      > licenseCheck
 
 This ensures all licenses fall into one of the categories given by `licenseCheckAllow` which defaults
-to a set of commonly allowed [OSS licenses](./src/main/scala/sbtlicensereport/SbtLicenseReport.scala#L173).
+to a set of commonly allowed [OSS licenses](./src/main/scala/sbtlicensereport/SbtLicenseReport.scala#L173). You can also exclude dependencies from the license check by 
+providing `licenseCheckExclusions`.
 
 ## Configuration
 
@@ -64,6 +65,11 @@ can be controlled via the following keys:
     // of a filtered DepModuleInfo will NOT get filtered out
     licenseDepExclusions := {
         case DepModuleInfo("org.scala-lang", _, _) => true
+    }
+
+    // Want to exclude any artifact named icu4j from the license check, but keep it in the reports.
+    licenseCheckExclusions := {
+        case DepModuleInfo(_, "icu4j", _) => true
     }
 
 # Releasing
