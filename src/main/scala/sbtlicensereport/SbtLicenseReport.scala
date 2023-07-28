@@ -168,7 +168,8 @@ object SbtLicenseReport extends AutoPlugin {
       LicenseCategory.Mozilla,
       LicenseCategory.PublicDomain,
       LicenseCategory.JSON,
-      LicenseCategory.Unicode
+      LicenseCategory.Unicode,
+      LicenseCategory.IBM_IPLA
     ),
     licenseCheckExclusions := PartialFunction.empty
   )
