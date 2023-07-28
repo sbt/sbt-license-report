@@ -61,4 +61,9 @@ object LicenseInfo {
     LicenseInfo(LicenseCategory.JSON, "The JSON License", "https://json.org/license.html")
   val Go =
     LicenseInfo(LicenseCategory.BSD, "The Go License", "https://golang.org/LICENSE")
+  val IBM_IPLA = LicenseInfo(
+    LicenseCategory.IBM_IPLA,
+    "IBM International Program License Agreement",
+    "https://www.ibm.com/support/customer/csol/terms/?id=i125-3301&lc=en#detail-document"
+  )
 }
