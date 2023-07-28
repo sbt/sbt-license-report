@@ -12,7 +12,7 @@ case class LicenseCategory(name: String, synonyms: Seq[String] = Nil) {
 
 }
 object LicenseCategory {
-  val BSD = LicenseCategory("BSD")
+  val BSD = LicenseCategory("BSD", Seq("EDL", "Eclipse Distribution License"))
   val Apache = LicenseCategory("Apache", Seq("asf", "ALv2"))
   val LGPL = LicenseCategory("LGPL", Seq("lesser general public license"))
   object GPLClasspath extends LicenseCategory("GPL with Classpath Extension") {
