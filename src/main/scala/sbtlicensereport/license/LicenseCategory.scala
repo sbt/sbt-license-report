@@ -12,8 +12,8 @@ case class LicenseCategory(name: String, synonyms: Seq[String] = Nil) {
 
 }
 object LicenseCategory {
-  val BSD = LicenseCategory("BSD", Seq("EDL", "Eclipse Distribution License"))
-  val Apache = LicenseCategory("Apache", Seq("asf", "ALv2"))
+  val BSD = LicenseCategory("BSD", Seq("EDL", "Eclipse Distribution License", "Go"))
+  val Apache = LicenseCategory("Apache", Seq("asf", "ALv2", "APL2"))
   val LGPL = LicenseCategory("LGPL", Seq("lesser general public license"))
   object GPLClasspath extends LicenseCategory("GPL with Classpath Extension") {
     override def unapply(license: String): Boolean = {
@@ -31,6 +31,9 @@ object LicenseCategory {
   val EPL = LicenseCategory("EPL", Seq("Eclipse Public License"))
   val CDDL = LicenseCategory("CDDL", Seq("Common Development and Distribution"))
   val BouncyCastle = LicenseCategory("Bouncy Castle License", Seq("Bouncy Castle"))
+  val Unicode = LicenseCategory("Unicode/ICU License", Seq("Unicode", "ICU"))
+  val IBM_IPLA = LicenseCategory("IBM International Program License Agreement")
+  val JSON = LicenseCategory("JSON", Seq("The JSON License"))
   val Proprietary = LicenseCategory("Proprietary")
   val NoneSpecified = LicenseCategory("none specified")
   val Unrecognized = LicenseCategory("unrecognized")
@@ -50,6 +53,9 @@ object LicenseCategory {
       EPL,
       CDDL,
       BouncyCastle,
+      Unicode,
+      IBM_IPLA,
+      JSON,
       Proprietary
     )
 

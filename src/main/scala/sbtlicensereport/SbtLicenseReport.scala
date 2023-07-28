@@ -61,6 +61,9 @@ object SbtLicenseReport extends AutoPlugin {
     val licenseFilter =
       settingKey[LicenseCategory => Boolean]("Configuration for what licenses to include in the report, by default.")
     val licenseCheckAllow = settingKey[Seq[LicenseCategory]]("Licenses that are allowed to pass in checkLicenses.")
+    val licenseCheckExclusions = settingKey[PartialFunction[DepModuleInfo, Boolean]](
+      "A partial function of which dependencies you want to exclude in license checks"
+    )
   }
   // Workaround for broken autoImport in sbt 0.13.5
   val autoImport = autoImportImpl
@@ -139,7 +142,8 @@ object SbtLicenseReport extends AutoPlugin {
         val log = streams.value.log
         val report = updateLicenses.value
         val allowed = licenseCheckAllow.value
-        LicenseReport.checkLicenses(report.licenses, allowed, log)
+        val exclusions = licenseCheckExclusions.value
+        LicenseReport.checkLicenses(report.licenses, exclusions, allowed, log)
       }
     )
 
@@ -162,7 +166,11 @@ object SbtLicenseReport extends AutoPlugin {
       LicenseCategory.EPL,
       LicenseCategory.MIT,
       LicenseCategory.Mozilla,
-      LicenseCategory.PublicDomain
-    )
+      LicenseCategory.PublicDomain,
+      LicenseCategory.JSON,
+      LicenseCategory.Unicode,
+      LicenseCategory.IBM_IPLA
+    ),
+    licenseCheckExclusions := PartialFunction.empty
   )
 }

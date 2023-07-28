@@ -57,4 +57,13 @@ object LicenseInfo {
   val MPL = LicenseInfo(LicenseCategory.Mozilla, "Mozilla Public License 2.0", "https://www.mozilla.org/MPL/2.0/")
   val BouncyCastle =
     LicenseInfo(LicenseCategory.BouncyCastle, "Bouncy Castle Licence", "https://www.bouncycastle.org/license.html")
+  val JSON =
+    LicenseInfo(LicenseCategory.JSON, "The JSON License", "https://json.org/license.html")
+  val Go =
+    LicenseInfo(LicenseCategory.BSD, "The Go License", "https://golang.org/LICENSE")
+  val IBM_IPLA = LicenseInfo(
+    LicenseCategory.IBM_IPLA,
+    "IBM International Program License Agreement",
+    "https://www.ibm.com/support/customer/csol/terms/?id=i125-3301&lc=en#detail-document"
+  )
 }
