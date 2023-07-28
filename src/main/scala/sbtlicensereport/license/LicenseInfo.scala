@@ -59,4 +59,6 @@ object LicenseInfo {
     LicenseInfo(LicenseCategory.BouncyCastle, "Bouncy Castle Licence", "https://www.bouncycastle.org/license.html")
   val JSON =
     LicenseInfo(LicenseCategory.JSON, "The JSON License", "https://json.org/license.html")
+  val Go =
+    LicenseInfo(LicenseCategory.BSD, "The Go License", "https://golang.org/LICENSE")
 }
