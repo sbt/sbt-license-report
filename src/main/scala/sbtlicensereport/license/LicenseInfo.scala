@@ -36,9 +36,9 @@ object LicenseInfo {
     "http://opensource.org/licenses/CDDL-1.0"
   )
   val CDDL_GPL = LicenseInfo(
-    LicenseCategory.CDDL,
-    "CDDL + GPLv2 License",
-    "https://glassfish.dev.java.net/nonav/public/CDDL+GPL.html"
+    LicenseCategory.CDDLPlusGPLClasspath,
+    "CDDL + GPLv2 with classpath exception",
+    "https://oss.oracle.com/licenses/CDDL+GPL-1.1"
   )
   val APACHE2 = LicenseInfo(
     LicenseCategory.Apache,
