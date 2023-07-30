@@ -66,4 +66,10 @@ object LicenseInfo {
     "IBM International Program License Agreement",
     "https://www.ibm.com/support/customer/csol/terms/?id=i125-3301&lc=en#detail-document"
   )
+  val Unicode =
+    LicenseInfo(
+      LicenseCategory.Unicode,
+      "Unicode/ICU License",
+      "https://raw.githubusercontent.com/unicode-org/icu/master/LICENSE"
+    )
 }
