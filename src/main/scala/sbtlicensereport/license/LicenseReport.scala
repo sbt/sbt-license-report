@@ -1,11 +1,15 @@
 package sbtlicensereport
 package license
 
-import org.apache.ivy.core.report.ResolveReport
-import org.apache.ivy.core.resolve.IvyNode
 import sbt._
-import scala.util.control.Exception._
-import sbtlicensereport.SbtCompat._
+import sbt.io.Using
+import sbt.internal.librarymanagement.IvySbt
+import sbt.librarymanagement.{
+  DependencyResolution,
+  UnresolvedWarning,
+  UnresolvedWarningConfiguration,
+  UpdateConfiguration
+}
 
 case class DepModuleInfo(organization: String, name: String, version: String) {
   override def toString = s"${organization} # ${name} # ${version}"
@@ -33,7 +37,7 @@ object DepLicense {
   }
 }
 
-case class LicenseReport(licenses: Seq[DepLicense], orig: ResolveReport) {
+case class LicenseReport(licenses: Seq[DepLicense], orig: UpdateReport) {
   override def toString = s"""|## License Report ##
                               |${licenses.mkString("\t", "\n\t", "\n")}
                               |""".stripMargin
@@ -107,13 +111,14 @@ object LicenseReport {
     }
   }
 
-  private def getModuleInfo(dep: IvyNode): DepModuleInfo = {
+  private def getModuleInfo(dep: ModuleReport): DepModuleInfo = {
     // TODO - null handling...
-    DepModuleInfo(dep.getModuleId.getOrganisation, dep.getModuleId.getName, dep.getModuleRevision.getId.getRevision)
+    DepModuleInfo(dep.module.organization, dep.module.name, dep.module.revision)
   }
 
   def makeReport(
       module: IvySbt#Module,
+      depRes: DependencyResolution,
       configs: Set[String],
       licenseSelection: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
@@ -121,9 +126,15 @@ object LicenseReport {
       originatingModule: DepModuleInfo,
       log: Logger
   ): LicenseReport = {
-    val (report, err) = resolve(module, log)
-    err foreach (x => throw x) // Bail on error
-    makeReportImpl(report, configs, licenseSelection, overrides, exclusions, originatingModule, log)
+    // Ideally we should be using just standard sbt update task however due to
+    // https://github.com/coursier/coursier/issues/1790 coursier cannot correctly
+    // resolve license information from Ivy modules, so instead we just use
+    // IvyDependencyResolution directly
+    val updateReport = resolve(depRes, module, log) match {
+      case Left(exception)     => throw exception.resolveException
+      case Right(updateReport) => updateReport
+    }
+    makeReportImpl(updateReport, configs, licenseSelection, overrides, exclusions, originatingModule, log)
   }
 
   /**
@@ -132,71 +143,83 @@ object LicenseReport {
    */
   private def pickLicense(
       categories: Seq[LicenseCategory]
-  )(licenses: Array[org.apache.ivy.core.module.descriptor.License]): LicenseInfo = {
-    if (licenses.isEmpty) {
+  )(licenses: Vector[(String, Option[String])]): LicenseInfo = {
+    // Even though the url is optional this field seems to always exist
+    val licensesWithUrls = licenses.collect { case (name, Some(url)) => (name, url) }
+    if (licensesWithUrls.isEmpty) {
       return LicenseInfo(LicenseCategory.NoneSpecified, "", "")
     }
     // We look for a license matching the category in the order they are defined.
     // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
     for (category <- categories) {
-      for (license <- licenses) {
-        if (category.unapply(license.getName)) {
-          return LicenseInfo(category, license.getName, license.getUrl)
+      for (license <- licensesWithUrls) {
+        val (name, url) = license
+        if (category.unapply(name)) {
+          return LicenseInfo(category, name, url)
         }
       }
     }
-    val license = licenses(0)
-    LicenseInfo(LicenseCategory.Unrecognized, license.getName, license.getUrl)
+    val license = licensesWithUrls(0)
+    LicenseInfo(LicenseCategory.Unrecognized, license._1, license._2)
   }
 
   /** Picks a single license (or none) for this dependency. */
   private def pickLicenseForDep(
-      dep: IvyNode,
+      dep: ModuleReport,
       configs: Set[String],
       categories: Seq[LicenseCategory],
       originatingModule: DepModuleInfo
-  ): Option[DepLicense] =
-    for {
-      d <- Option(dep)
-      cs = dep.getRootModuleConfigurations.toSet
-      filteredConfigs = if (cs.isEmpty) cs else cs.filter(configs)
-      if !filteredConfigs.isEmpty
-      if !filteredConfigs.forall(d.isEvicted)
-      desc <- Option(dep.getDescriptor)
-      licenses = Option(desc.getLicenses)
-        .filterNot(_.isEmpty)
-        .getOrElse(Array(new org.apache.ivy.core.module.descriptor.License("none specified", "none specified")))
-      homepage = Option
-        .apply(desc.getHomePage)
-        .flatMap(loc =>
-          nonFatalCatch[Option[URL]]
-            .withApply((_: Throwable) => Option.empty[URL])
-            .apply(Some(url(loc)))
+  ): Option[DepLicense] = {
+    val cs = dep.configurations
+    val filteredConfigs = if (cs.isEmpty) cs else cs.filter(configs.map(ConfigRef.apply))
+
+    if (dep.evicted || filteredConfigs.isEmpty)
+      None
+    else {
+      val licenses = dep.licenses
+      val homepage = dep.homepage.map(string => new URL(string))
+      Some(
+        DepLicense(
+          getModuleInfo(dep),
+          pickLicense(categories)(licenses),
+          homepage,
+          filteredConfigs.map(_.name).toSet,
+          originatingModule
         )
-      // TODO - grab configurations.
-    } yield DepLicense(
-      getModuleInfo(dep),
-      pickLicense(categories)(licenses),
-      homepage,
-      filteredConfigs,
-      originatingModule
-    )
+      )
+    }
+  }
+
+  // TODO: Use https://github.com/sbt/librarymanagement/pull/428 instead when merged and released
+  private def moduleKey(m: ModuleID) = (m.organization, m.name, m.revision)
+
+  private def allModuleReports(configurations: Vector[ConfigurationReport]): Vector[ModuleReport] =
+    configurations.flatMap(_.modules).groupBy(mR => moduleKey(mR.module)).toVector map { case (_, v) =>
+      v reduceLeft { (agg, x) =>
+        agg.withConfigurations(
+          (agg.configurations, x.configurations) match {
+            case (v, _) if v.isEmpty  => x.configurations
+            case (ac, v) if v.isEmpty => ac
+            case (ac, xc)             => ac ++ xc
+          }
+        )
+      }
+    }
 
   private def getLicenses(
-      report: ResolveReport,
+      report: UpdateReport,
       configs: Set[String] = Set.empty,
       categories: Seq[LicenseCategory] = LicenseCategory.all,
       originatingModule: DepModuleInfo
   ): Seq[DepLicense] = {
-    import collection.JavaConverters._
     for {
-      dep <- report.getDependencies.asInstanceOf[java.util.List[IvyNode]].asScala
+      dep <- allModuleReports(report.configurations)
       report <- pickLicenseForDep(dep, configs, categories, originatingModule)
     } yield report
   }
 
   private def makeReportImpl(
-      report: ResolveReport,
+      report: UpdateReport,
       configs: Set[String],
       categories: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
@@ -216,22 +239,14 @@ object LicenseReport {
     LicenseReport(licenses, report)
   }
 
-  // Hacky way to go re-lookup the report
-  private def resolve(module: IvySbt#Module, log: Logger): (ResolveReport, Option[ResolveException]) =
-    module.withModule(log) { (ivy, desc, default) =>
-      import org.apache.ivy.core.resolve.ResolveOptions
-      val resolveOptions = new ResolveOptions
-      val resolveId = ResolveOptions.getDefaultResolveId(desc)
-      resolveOptions.setResolveId(resolveId)
-      import org.apache.ivy.core.LogOptions.LOG_QUIET
-      resolveOptions.setLog(LOG_QUIET)
-      val resolveReport = ivy.resolve(desc, resolveOptions)
-      val err =
-        if (resolveReport.hasError) {
-          val messages = resolveReport.getAllProblemMessages.toArray.map(_.toString).distinct
-          val failed = resolveReport.getUnresolvedDependencies.map(node => IvyRetrieve.toModuleID(node.getId))
-          Some(new ResolveException(messages, failed))
-        } else None
-      (resolveReport, err)
-    }
+  private def resolve(
+      depRes: DependencyResolution,
+      module: IvySbt#Module,
+      log: Logger
+  ): Either[UnresolvedWarning, UpdateReport] = {
+    val uc = UpdateConfiguration().withLogging(UpdateLogging.DownloadOnly)
+    val uwc = UnresolvedWarningConfiguration()
+
+    depRes.update(module, uc, uwc, log)
+  }
 }

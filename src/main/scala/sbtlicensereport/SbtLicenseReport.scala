@@ -1,6 +1,7 @@
 package sbtlicensereport
 
 import sbt._
+import sbt.librarymanagement.ivy.IvyDependencyResolution
 import Keys._
 import license._
 
@@ -87,6 +88,7 @@ object SbtLicenseReport extends AutoPlugin {
         val originatingModule = DepModuleInfo(organization.value, name.value, version.value)
         license.LicenseReport.makeReport(
           ivyModule.value,
+          IvyDependencyResolution(ivyConfiguration.value),
           licenseConfigurations.value,
           licenseSelection.value,
           overrides,
