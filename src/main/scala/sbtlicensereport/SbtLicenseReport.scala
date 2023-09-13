@@ -42,7 +42,7 @@ object SbtLicenseReport extends AutoPlugin {
     val licenseReportDir = settingKey[File]("The location where we'll write the license reports.")
     val licenseReportStyleRules = settingKey[Option[String]]("The style rules for license report styling.")
     val licenseReportTitle = settingKey[String]("The name of the license report.")
-    val licenseConfigurations = settingKey[Set[String]]("The ivy configurations we wish a report of.")
+    val licenseConfigurations = settingKey[Set[Configuration]]("The ivy configurations we wish a report of.")
     val licenseSelection = settingKey[Seq[LicenseCategory]](
       "A priority-order list mechanism we can use to select licenses for builds that have more than one."
     )
@@ -149,7 +149,7 @@ object SbtLicenseReport extends AutoPlugin {
 
   override lazy val globalSettings = Seq(
     licenseSelection := LicenseCategory.all,
-    licenseConfigurations := Set("compile", "test"),
+    licenseConfigurations := Set(Compile, Test),
     // Here we use an empty partial function
     licenseReportNotes := PartialFunction.empty,
     licenseOverrides := PartialFunction.empty,

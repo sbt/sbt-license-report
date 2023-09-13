@@ -114,7 +114,7 @@ object LicenseReport {
 
   def makeReport(
       module: IvySbt#Module,
-      configs: Set[String],
+      configs: Set[Configuration],
       licenseSelection: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
       exclusions: DepModuleInfo => Option[Boolean],
@@ -152,14 +152,14 @@ object LicenseReport {
   /** Picks a single license (or none) for this dependency. */
   private def pickLicenseForDep(
       dep: IvyNode,
-      configs: Set[String],
+      configs: Set[Configuration],
       categories: Seq[LicenseCategory],
       originatingModule: DepModuleInfo
   ): Option[DepLicense] =
     for {
       d <- Option(dep)
       cs = dep.getRootModuleConfigurations.toSet
-      filteredConfigs = if (cs.isEmpty) cs else cs.filter(configs)
+      filteredConfigs = if (cs.isEmpty) cs else cs.filter(configs.map(_.name))
       if !filteredConfigs.isEmpty
       if !filteredConfigs.forall(d.isEvicted)
       desc <- Option(dep.getDescriptor)
@@ -184,7 +184,7 @@ object LicenseReport {
 
   private def getLicenses(
       report: ResolveReport,
-      configs: Set[String] = Set.empty,
+      configs: Set[Configuration] = Set.empty,
       categories: Seq[LicenseCategory] = LicenseCategory.all,
       originatingModule: DepModuleInfo
   ): Seq[DepLicense] = {
@@ -197,7 +197,7 @@ object LicenseReport {
 
   private def makeReportImpl(
       report: ResolveReport,
-      configs: Set[String],
+      configs: Set[Configuration],
       categories: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
       exclusions: DepModuleInfo => Option[Boolean],
