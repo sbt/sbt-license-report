@@ -1,18 +1,15 @@
 lazy val lang3 = "org.apache.commons" % "commons-lang3" % "3.12.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
-crossScalaVersions := Seq("2.12.17", "2.10.7")
+val scala212 = "2.12.18"
+
+scalaVersion := scala212
+crossScalaVersions := Seq(scala212)
 organization := "com.github.sbt"
 name := "sbt-license-report"
 enablePlugins(SbtPlugin)
 libraryDependencies += lang3
 scriptedLaunchOpts += s"-Dplugin.version=${version.value}"
-pluginCrossBuild / sbtVersion := {
-  scalaBinaryVersion.value match {
-    case "2.10" => "0.13.18"
-    case "2.12" => "1.2.8" // set minimum sbt version
-  }
-}
 
 // publishing info
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
