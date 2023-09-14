@@ -244,7 +244,7 @@ object LicenseReport {
       module: IvySbt#Module,
       log: Logger
   ): Either[UnresolvedWarning, UpdateReport] = {
-    val uc = UpdateConfiguration().withLogging(UpdateLogging.DownloadOnly)
+    val uc = UpdateConfiguration().withLogging(UpdateLogging.Quiet)
     val uwc = UnresolvedWarningConfiguration()
 
     depRes.update(module, uc, uwc, log)
