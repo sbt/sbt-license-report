@@ -49,6 +49,11 @@ object LicenseInfo {
   val BSD3 = LicenseInfo(LicenseCategory.BSD, "BSD 3-Clause", "http://opensource.org/licenses/BSD-3-Clause")
   val MIT = LicenseInfo(LicenseCategory.MIT, "MIT License", "http://opensource.org/licenses/MIT")
   val EPL = LicenseInfo(LicenseCategory.EPL, "Eclipse Public License", "https://www.eclipse.org/legal/epl-v10.html")
+  val EPL2 = LicenseInfo(
+    LicenseCategory.EPL,
+    "Eclipse Public License, Version 2.0 (EPL-2.0)",
+    "https://www.eclipse.org/legal/epl-v20.html"
+  )
   val EDL = LicenseInfo(
     LicenseCategory.BSD,
     "Eclipse Distribution License 1.0",
