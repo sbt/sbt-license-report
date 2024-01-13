@@ -1,7 +1,7 @@
 lazy val lang3 = "org.apache.commons" % "commons-lang3" % "3.12.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
-val scala212 = "2.12.18"
+val scala212 = "2.13.12"
 
 scalaVersion := scala212
 crossScalaVersions := Seq(scala212)
