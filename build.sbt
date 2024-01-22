@@ -3,8 +3,8 @@ lazy val repoSlug = "sbt/sbt-license-report"
 
 val scala212 = "2.12.18"
 
-scalaVersion := scala212
-crossScalaVersions := Seq(scala212)
+ThisBuild / scalaVersion := scala212
+ThisBuild / crossScalaVersions := Seq(scala212)
 organization := "com.github.sbt"
 name := "sbt-license-report"
 enablePlugins(SbtPlugin)
@@ -33,3 +33,33 @@ pomIncludeRepository := { _ =>
   false
 }
 publishMavenStyle := true
+
+ThisBuild / githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("test", "scripted")))
+
+ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
+ThisBuild / githubWorkflowPublishTargetBranches :=
+  Seq(
+    RefPredicate.StartsWith(Ref.Tag("v")),
+    RefPredicate.Equals(Ref.Branch("main"))
+  )
+ThisBuild / githubWorkflowPublish := Seq(
+  WorkflowStep.Sbt(
+    commands = List("ci-release"),
+    name = Some("Publish project"),
+    env = Map(
+      "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
+      "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
+      "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
+      "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}"
+    )
+  )
+)
+
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest")
+
+ThisBuild / githubWorkflowJavaVersions := Seq(
+  JavaSpec.temurin("8"),
+  JavaSpec.temurin("11"),
+  JavaSpec.temurin("17"),
+  JavaSpec.temurin("21")
+)
