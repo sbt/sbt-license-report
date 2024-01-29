@@ -34,6 +34,26 @@ pomIncludeRepository := { _ =>
 }
 publishMavenStyle := true
 
+// compile settings
+scalacOptions ++= List(
+  "-unchecked",
+  "-deprecation",
+  "-language:_",
+  "-encoding",
+  "UTF-8"
+)
+
+scalacOptions ++= {
+  if (insideCI.value) {
+    val log = sLog.value
+    log.info("Running in CI, enabling Scala2 optimizer")
+    Seq(
+      "-opt-inline-from:<sources>",
+      "-opt:l:inline"
+    )
+  } else Nil
+}
+
 ThisBuild / githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("test", "scripted")))
 
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
