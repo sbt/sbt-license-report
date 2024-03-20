@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        scala: [2.12.18]
+        scala: [2.12.19]
         java: [temurin@8, temurin@11, temurin@17, temurin@21]
     runs-on: ${{ matrix.os }}
     steps:
@@ -101,7 +101,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.18]
+        scala: [2.12.19]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -154,12 +154,12 @@ jobs:
           java-version: 21
           cache: sbt
 
-      - name: Download target directories (2.12.18)
+      - name: Download target directories (2.12.19)
         uses: actions/download-artifact@v4
         with:
-          name: target-${{ matrix.os }}-2.12.18-${{ matrix.java }}
+          name: target-${{ matrix.os }}-2.12.19-${{ matrix.java }}
 
-      - name: Inflate target directories (2.12.18)
+      - name: Inflate target directories (2.12.19)
         run: |
           tar xf targets.tar
           rm targets.tar
