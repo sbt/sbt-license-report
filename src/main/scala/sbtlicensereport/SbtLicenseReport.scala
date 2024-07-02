@@ -82,13 +82,11 @@ object SbtLicenseReport extends AutoPlugin {
     Seq(
       licenseReportTitle := s"${normalizedName.value}-licenses",
       updateLicenses := {
-        val ignore = update.value
         val overrides = licenseOverrides.value.lift
         val depExclusions = licenseDepExclusions.value.lift
         val originatingModule = DepModuleInfo(organization.value, name.value, version.value)
         license.LicenseReport.makeReport(
-          ivyModule.value,
-          IvyDependencyResolution(ivyConfiguration.value),
+          update.value,
           licenseConfigurations.value,
           licenseSelection.value,
           overrides,
