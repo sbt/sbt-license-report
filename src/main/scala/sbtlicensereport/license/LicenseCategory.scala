@@ -56,6 +56,7 @@ object LicenseCategory {
       BSD,
       Apache,
       LGPL,
+      CDDLPlusGPLClasspath,
       GPLClasspath,
       GPL,
       EPL,
