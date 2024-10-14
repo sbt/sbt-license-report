@@ -81,7 +81,7 @@ object LicenseReport {
           print(language.tableRow(notes, rest: _*))
         }
         print(language.tableEnd)
-        print(language.documentEnd)
+        print(language.documentEnd())
       }
     }
   }
