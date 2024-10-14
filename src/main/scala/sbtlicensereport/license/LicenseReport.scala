@@ -180,7 +180,7 @@ object LicenseReport {
       None
     else {
       val licenses = dep.licenses
-      val homepage = dep.homepage.map(string => new URL(string))
+      val homepage = dep.homepage.map(string => new URI(string).toURL)
       Some(
         DepLicense(
           getModuleInfo(dep),
