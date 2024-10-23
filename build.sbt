@@ -1,7 +1,7 @@
 lazy val lang3 = "org.apache.commons" % "commons-text" % "1.12.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
-val scala212 = "2.12.19"
+val scala212 = "2.12.20"
 val scala3 = "3.3.3"
 
 pluginCrossBuild / sbtVersion := {
