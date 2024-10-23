@@ -92,7 +92,7 @@ case object Html extends TargetLanguage {
   }
   def tableEnd: String = "</tbody></table>"
 
-  def htmlEncode(s: String) = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(s)
+  def htmlEncode(s: String) = org.apache.commons.text.StringEscapeUtils.escapeHtml4(s)
 }
 
 case object Csv extends TargetLanguage {
@@ -114,7 +114,7 @@ case object Csv extends TargetLanguage {
   }
 
   def tableEnd: String = ""
-  def csvEncode(s: String): String = org.apache.commons.lang3.StringEscapeUtils.escapeCsv(s)
+  def csvEncode(s: String): String = org.apache.commons.text.StringEscapeUtils.escapeCsv(s)
 }
 
 case object ConfluenceWikiMarkup extends TargetLanguage {

@@ -156,7 +156,7 @@ object SbtLicenseReport extends AutoPlugin {
     licenseReportNotes := PartialFunction.empty,
     licenseOverrides := PartialFunction.empty,
     licenseDepExclusions := PartialFunction.empty,
-    licenseFilter := TypeFunctions.const(true),
+    licenseFilter := Function.const(true),
     licenseReportStyleRules := None,
     licenseReportTypes := Seq(MarkDown, Html, Csv),
     licenseReportColumns := Seq(Column.Category, Column.License, Column.Dependency),

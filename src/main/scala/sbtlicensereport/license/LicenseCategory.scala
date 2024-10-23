@@ -1,12 +1,14 @@
 package sbtlicensereport
 package license
 
+import java.util.Locale
+
 // TODO - What do we mean by viral?
 case class LicenseCategory(name: String, synonyms: Seq[String] = Nil) {
   def unapply(license: String): Boolean = {
     val names = name +: synonyms
     names exists { n =>
-      license.toLowerCase contains n.toLowerCase
+      license.toLowerCase(Locale.ROOT) contains n.toLowerCase(Locale.ROOT)
     }
   }
 
@@ -17,14 +19,14 @@ object LicenseCategory {
   val LGPL = LicenseCategory("LGPL", Seq("lesser general public license"))
   object GPLClasspath extends LicenseCategory("GPL with Classpath Extension") {
     override def unapply(license: String): Boolean = {
-      val name = license.toLowerCase
+      val name = license.toLowerCase(Locale.ROOT)
       (name.contains("gpl") || name.contains("general public license")) &&
       name.contains("classpath")
     }
   }
   object CDDLPlusGPLClasspath extends LicenseCategory("CDDL + GPLv2 with classpath exception") {
     override def unapply(license: String): Boolean = {
-      val name = license.toLowerCase
+      val name = license.toLowerCase(Locale.ROOT)
       (name.contains("gpl") || name.contains("general public license")) &&
       (name.contains("cddl") || name.contains("common development and distribution license")) &&
       name.contains("classpath")

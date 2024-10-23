@@ -1,6 +1,6 @@
 name := "example"
 
-excludeDependencies in ThisBuild += "org.scala-lang"
+ThisBuild / excludeDependencies += "org.scala-lang"
 
 lazy val one = project
   .in(file("one"))
