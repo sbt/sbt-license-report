@@ -2,14 +2,47 @@ lazy val lang3 = "org.apache.commons" % "commons-text" % "1.12.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
 val scala212 = "2.12.20"
+val scala3 = "3.3.3"
+
+pluginCrossBuild / sbtVersion := {
+  scalaBinaryVersion.value match {
+    case "2.12" =>
+      (pluginCrossBuild / sbtVersion).value
+    case _ =>
+      "2.0.0-M2"
+  }
+}
 
 ThisBuild / scalaVersion := scala212
-ThisBuild / crossScalaVersions := Seq(scala212)
+ThisBuild / crossScalaVersions := Seq(scala212, scala3)
 organization := "com.github.sbt"
 name := "sbt-license-report"
 enablePlugins(SbtPlugin)
 libraryDependencies += lang3
 scriptedLaunchOpts += s"-Dplugin.version=${version.value}"
+
+ThisBuild / githubWorkflowScalaVersions := Seq(scalaVersion.value)
+
+TaskKey[Unit]("testAll") := {
+  if (scalaBinaryVersion.value == "3") {
+    Def
+      .sequential(
+        Test / test,
+        Def.task(
+          // TODO enable test
+          streams.value.log.warn("skip sbt 2.x scripted tests")
+        )
+      )
+      .value
+  } else {
+    Def
+      .sequential(
+        Test / test,
+        scripted.toTask("")
+      )
+      .value
+  }
+}
 
 // publishing info
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html"))
@@ -54,7 +87,7 @@ scalacOptions ++= {
   } else Nil
 }
 
-ThisBuild / githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("test", "scripted")))
+ThisBuild / githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("+ testAll")))
 
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
 ThisBuild / githubWorkflowPublishTargetBranches :=

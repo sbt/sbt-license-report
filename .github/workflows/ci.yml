@@ -88,7 +88,7 @@ jobs:
         run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
       - shell: bash
-        run: sbt '++ ${{ matrix.scala }}' test scripted
+        run: sbt '++ ${{ matrix.scala }}' '+ testAll'
 
       - name: Compress target directories
         shell: bash

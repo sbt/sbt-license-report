@@ -81,7 +81,7 @@ object LicenseReport {
           print(language.tableRow(notes, rest: _*))
         }
         print(language.tableEnd)
-        print(language.documentEnd)
+        print(language.documentEnd())
       }
     }
   }
@@ -147,20 +147,23 @@ object LicenseReport {
     // Even though the url is optional this field seems to always exist
     val licensesWithUrls = licenses.collect { case (name, Some(url)) => (name, url) }
     if (licensesWithUrls.isEmpty) {
-      return LicenseInfo(LicenseCategory.NoneSpecified, "", "")
-    }
-    // We look for a license matching the category in the order they are defined.
-    // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
-    for (category <- categories) {
-      for (license <- licensesWithUrls) {
-        val (name, url) = license
-        if (category.unapply(name)) {
-          return LicenseInfo(category, name, url)
+      LicenseInfo(LicenseCategory.NoneSpecified, "", "")
+    } else {
+      // We look for a license matching the category in the order they are defined.
+      // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
+      categories
+        .flatMap(category =>
+          licensesWithUrls.collectFirst {
+            case (name, url) if category.unapply(name) =>
+              LicenseInfo(category, name, url)
+          }
+        )
+        .headOption
+        .getOrElse {
+          val license = licensesWithUrls(0)
+          LicenseInfo(LicenseCategory.Unrecognized, license._1, license._2)
         }
-      }
     }
-    val license = licensesWithUrls(0)
-    LicenseInfo(LicenseCategory.Unrecognized, license._1, license._2)
   }
 
   /** Picks a single license (or none) for this dependency. */
@@ -177,7 +180,7 @@ object LicenseReport {
       None
     else {
       val licenses = dep.licenses
-      val homepage = dep.homepage.map(string => new URL(string))
+      val homepage = dep.homepage.map(string => new URI(string).toURL)
       Some(
         DepLicense(
           getModuleInfo(dep),
