@@ -20,6 +20,7 @@ name := "sbt-license-report"
 enablePlugins(SbtPlugin)
 libraryDependencies += lang3
 scriptedLaunchOpts += s"-Dplugin.version=${version.value}"
+pluginCrossBuild / sbtVersion := "1.9.5"
 
 ThisBuild / githubWorkflowScalaVersions := Seq(scalaVersion.value)
 
