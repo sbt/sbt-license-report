@@ -1,7 +1,6 @@
 package sbtlicensereport
 
 import sbt._
-import sbt.librarymanagement.ivy.IvyDependencyResolution
 import Keys._
 import license._
 

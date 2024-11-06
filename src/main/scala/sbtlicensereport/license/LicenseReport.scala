@@ -3,13 +3,6 @@ package license
 
 import sbt._
 import sbt.io.Using
-import sbt.internal.librarymanagement.IvySbt
-import sbt.librarymanagement.{
-  DependencyResolution,
-  UnresolvedWarning,
-  UnresolvedWarningConfiguration,
-  UpdateConfiguration
-}
 
 case class DepModuleInfo(organization: String, name: String, version: String) {
   override def toString = s"${organization} # ${name} # ${version}"
@@ -186,8 +179,8 @@ object LicenseReport {
 
   private def getLicenses(
       report: UpdateReport,
-      configs: Set[String] = Set.empty,
-      categories: Seq[LicenseCategory] = LicenseCategory.all,
+      configs: Set[String],
+      categories: Seq[LicenseCategory],
       originatingModule: DepModuleInfo
   ): Seq[DepLicense] = {
     for {
@@ -215,16 +208,5 @@ object LicenseReport {
     }
     // TODO - Filter for a real report...
     LicenseReport(licenses, report)
-  }
-
-  private def resolve(
-      depRes: DependencyResolution,
-      module: IvySbt#Module,
-      log: Logger
-  ): Either[UnresolvedWarning, UpdateReport] = {
-    val uc = UpdateConfiguration().withLogging(UpdateLogging.Quiet)
-    val uwc = UnresolvedWarningConfiguration()
-
-    depRes.update(module, uc, uwc, log)
   }
 }
