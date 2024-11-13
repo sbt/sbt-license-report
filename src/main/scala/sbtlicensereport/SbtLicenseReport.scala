@@ -81,6 +81,8 @@ object SbtLicenseReport extends AutoPlugin {
     Seq(
       licenseReportTitle := s"${normalizedName.value}-licenses",
       updateLicenses := {
+        if (VersionNumber(sbtVersion.value).matchesSemVer(SemanticSelector("<1.10.5")))
+          throw new sbt.MessageOnlyException("sbt-license-report requires sbt 1.10.5 or greater.")
         val overrides = licenseOverrides.value.lift
         val depExclusions = licenseDepExclusions.value.lift
         val originatingModule = DepModuleInfo(organization.value, name.value, version.value)
