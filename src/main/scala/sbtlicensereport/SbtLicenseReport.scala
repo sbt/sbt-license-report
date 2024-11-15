@@ -6,7 +6,7 @@ import license._
 
 /** A plugin which enables reporting on licensing used within a project. */
 object SbtLicenseReport extends AutoPlugin {
-  override def requires: Plugins = plugins.IvyPlugin
+  override def requires: Plugins = empty
   override def trigger = allRequirements
 
   object autoImportImpl {
