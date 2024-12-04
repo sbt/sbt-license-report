@@ -1,6 +1,8 @@
 package sbtlicensereport
 package license
 
+import java.net.URISyntaxException
+
 import sbt._
 import sbt.io.Using
 import sbt.internal.librarymanagement.IvySbt
@@ -171,7 +173,8 @@ object LicenseReport {
       dep: ModuleReport,
       configs: Set[String],
       categories: Seq[LicenseCategory],
-      originatingModule: DepModuleInfo
+      originatingModule: DepModuleInfo,
+      log: Logger
   ): Option[DepLicense] = {
     val cs = dep.configurations
     val filteredConfigs = if (cs.isEmpty) cs else cs.filter(configs.map(ConfigRef.apply))
@@ -180,7 +183,15 @@ object LicenseReport {
       None
     else {
       val licenses = dep.licenses
-      val homepage = dep.homepage.map(string => new URI(string).toURL)
+      val homepage = dep.homepage.flatMap(string => {
+        try {
+          Some(new URI(string).toURL)
+        } catch {
+          case _: URISyntaxException =>
+            log.warn(s"sbt-license-report: dependency [${dep.module}] has malformed homepage url [$string]")
+            None
+        }
+      })
       Some(
         DepLicense(
           getModuleInfo(dep),
@@ -213,11 +224,12 @@ object LicenseReport {
       report: UpdateReport,
       configs: Set[String] = Set.empty,
       categories: Seq[LicenseCategory] = LicenseCategory.all,
-      originatingModule: DepModuleInfo
+      originatingModule: DepModuleInfo,
+      log: Logger
   ): Seq[DepLicense] = {
     for {
       dep <- allModuleReports(report.configurations)
-      report <- pickLicenseForDep(dep, configs, categories, originatingModule)
+      report <- pickLicenseForDep(dep, configs, categories, originatingModule, log)
     } yield report
   }
 
@@ -230,7 +242,7 @@ object LicenseReport {
       originatingModule: DepModuleInfo,
       log: Logger
   ): LicenseReport = {
-    val licenses = getLicenses(report, configs, categories, originatingModule) filterNot { dep =>
+    val licenses = getLicenses(report, configs, categories, originatingModule, log) filterNot { dep =>
       exclusions(dep.module).getOrElse(false)
     } map { l =>
       overrides(l.module) match {
