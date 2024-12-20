@@ -2,14 +2,14 @@ lazy val lang3 = "org.apache.commons" % "commons-text" % "1.12.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
 val scala212 = "2.12.20"
-val scala3 = "3.3.3"
+val scala3 = "3.6.2"
 
 pluginCrossBuild / sbtVersion := {
   scalaBinaryVersion.value match {
     case "2.12" =>
       (pluginCrossBuild / sbtVersion).value
     case _ =>
-      "2.0.0-M2"
+      "2.0.0-M3"
   }
 }
 
@@ -71,7 +71,6 @@ publishMavenStyle := true
 scalacOptions ++= List(
   "-unchecked",
   "-deprecation",
-  "-language:_",
   "-encoding",
   "UTF-8"
 )
