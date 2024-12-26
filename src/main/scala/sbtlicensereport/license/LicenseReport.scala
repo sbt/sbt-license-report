@@ -211,12 +211,13 @@ object LicenseReport {
 
   private def getLicenses(
       report: UpdateReport,
-      configs: Set[String] = Set.empty,
-      categories: Seq[LicenseCategory] = LicenseCategory.all,
+      configs: Set[String],
+      categories: Seq[LicenseCategory],
       originatingModule: DepModuleInfo
   ): Seq[DepLicense] = {
+    val relevantConfigurations = report.configurations.filter(c => configs.contains(c.configuration.name))
     for {
-      dep <- allModuleReports(report.configurations)
+      dep <- allModuleReports(relevantConfigurations)
       report <- pickLicenseForDep(dep, configs, categories, originatingModule)
     } yield report
   }
