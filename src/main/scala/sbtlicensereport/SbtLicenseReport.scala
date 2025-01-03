@@ -1,13 +1,12 @@
 package sbtlicensereport
 
 import sbt._
-import sbt.librarymanagement.ivy.IvyDependencyResolution
 import Keys._
 import license._
 
 /** A plugin which enables reporting on licensing used within a project. */
 object SbtLicenseReport extends AutoPlugin {
-  override def requires: Plugins = plugins.IvyPlugin
+  override def requires: Plugins = empty
   override def trigger = allRequirements
 
   object autoImportImpl {
@@ -82,13 +81,13 @@ object SbtLicenseReport extends AutoPlugin {
     Seq(
       licenseReportTitle := s"${normalizedName.value}-licenses",
       updateLicenses := {
-        val ignore = update.value
+        if (VersionNumber(sbtVersion.value).matchesSemVer(SemanticSelector("<1.10.5")))
+          throw new sbt.MessageOnlyException("sbt-license-report requires sbt 1.10.5 or greater.")
         val overrides = licenseOverrides.value.lift
         val depExclusions = licenseDepExclusions.value.lift
         val originatingModule = DepModuleInfo(organization.value, name.value, version.value)
         license.LicenseReport.makeReport(
-          ivyModule.value,
-          IvyDependencyResolution(ivyConfiguration.value),
+          update.value,
           licenseConfigurations.value,
           licenseSelection.value,
           overrides,
