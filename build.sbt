@@ -1,4 +1,4 @@
-lazy val lang3 = "org.apache.commons" % "commons-text" % "1.12.0"
+lazy val lang3 = "org.apache.commons" % "commons-text" % "1.14.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
 val scala212 = "2.12.20"
