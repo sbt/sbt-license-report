@@ -1,6 +1,7 @@
 package sbtlicensereport
 
 import sbt._
+import sbtlicensereport.SbtLicenseReportCompat._
 import Keys._
 import license._
 
@@ -80,7 +81,7 @@ object SbtLicenseReport extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] =
     Seq(
       licenseReportTitle := s"${normalizedName.value}-licenses",
-      updateLicenses := {
+      updateLicenses := Def.uncached {
         if (VersionNumber(sbtVersion.value).matchesSemVer(SemanticSelector("<1.10.5")))
           throw new sbt.MessageOnlyException("sbt-license-report requires sbt 1.10.5 or greater.")
         val overrides = licenseOverrides.value.lift
@@ -100,7 +101,7 @@ object SbtLicenseReport extends AutoPlugin {
       licenseReportMakeHeader := (language => language.header1(licenseReportTitle.value)),
       // TODO - Maybe we need a general purpose reporting directory
       licenseReportDir := target.value / "license-reports",
-      licenseReportConfigurations := {
+      licenseReportConfigurations := Def.uncached {
         val dir = licenseReportDir.value
         val styleRules = licenseReportStyleRules.value
         // TODO - Configurable language (markdown/html/csv) rather than all always
@@ -118,28 +119,28 @@ object SbtLicenseReport extends AutoPlugin {
         )
         Seq(config)
       },
-      dumpLicenseReport := {
+      dumpLicenseReport := Def.uncached {
         val report = updateLicenses.value
         val dir = licenseReportDir.value
         for (config <- licenseReportConfigurations.value)
           LicenseReport.dumpLicenseReport(report.licenses, config)
         dir
       },
-      dumpLicenseReportAggregate := {
+      dumpLicenseReportAggregate := Def.uncached {
         val reports = aggregateUpdateLicenses.value
         val dir = licenseReportDir.value
         for (config <- licenseReportConfigurations.value)
           LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses), config)
         dir
       },
-      dumpLicenseReportAnyProject := {
+      dumpLicenseReportAnyProject := Def.uncached {
         val reports = anyProjectUpdateLicenses.value
         val dir = licenseReportDir.value
         for (config <- licenseReportConfigurations.value)
           LicenseReport.dumpLicenseReport(reports.flatMap(_.licenses), config)
         dir
       },
-      licenseCheck := {
+      licenseCheck := Def.uncached {
         val log = streams.value.log
         val report = updateLicenses.value
         val allowed = licenseCheckAllow.value
