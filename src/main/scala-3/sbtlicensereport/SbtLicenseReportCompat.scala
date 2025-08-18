@@ -1,0 +1,3 @@
+package sbtlicensereport
+
+private[sbtlicensereport] object SbtLicenseReportCompat
