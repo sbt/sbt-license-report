@@ -1,0 +1,18 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>fake-lib</artifactId>
+    <version>1.0.0</version>
+    <name>fake-lib</name>
+    <licenses>
+        <license>
+            <name>${properties.license.name}</name>
+            <url>https://example.org/${project.artifactId}</url>
+        </license>
+    </licenses>
+    <properties>
+        <license>
+            <name>replacement</name>
+        </license>
+    </properties>
+</project>
