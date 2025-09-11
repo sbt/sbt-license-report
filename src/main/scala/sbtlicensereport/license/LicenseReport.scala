@@ -324,26 +324,28 @@ object LicenseReport {
       originatingModule: DepModuleInfo,
       log: Logger
   ): LicenseReport = {
-    val reportWithReplacedPropertyReferences = report.withConfigurations(
-      report.configurations
-        .map(c => {
-          val nd = c.details.map(ogd => {
-            val ogm = ogd.modules
-            val nm = ogm.map(replacePropertyReferences(_, log))
-            ogd.withModules(nm)
-          })
-          val nm = nd.flatMap(_.modules)
-          c.withDetails(nd).withModules(nm)
-        })
-    )
+    val reportWithReplacedPropertyReferences = report.withConfigurations {
+      report.configurations.map { c =>
+        val newDetails = c.details.map { d =>
+          d.withModules(d.modules.map(replacePropertyReferences(_, log)))
+        }
+
+        val newModules =
+          if (newDetails.nonEmpty) newDetails.flatMap(_.modules)
+          else c.modules.map(replacePropertyReferences(_, log))
+
+        c.withDetails(newDetails).withModules(newModules)
+      }
+    }
+
 
     val licenses =
       getLicenses(reportWithReplacedPropertyReferences, configs, categories, originatingModule, log) filterNot { dep =>
         exclusions(dep.module).getOrElse(false)
-      } map { l =>
-        overrides(l.module) match {
-          case Some(o) => l.copy(license = o)
-          case _       => l
+      } map { depLicense =>
+        overrides(depLicense.module) match {
+          case Some(licenseInfo) => depLicense.copy(license = licenseInfo)
+          case _       => depLicense
         }
       }
     // TODO - Filter for a real report...
