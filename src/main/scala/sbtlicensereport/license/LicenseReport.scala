@@ -7,13 +7,6 @@ import scala.util.control.NonFatal
 import scala.xml.{ Elem, XML }
 import sbt.*
 import sbt.io.Using
-import sbt.internal.librarymanagement.IvySbt
-import sbt.librarymanagement.{
-  DependencyResolution,
-  UnresolvedWarning,
-  UnresolvedWarningConfiguration,
-  UpdateConfiguration
-}
 
 case class DepModuleInfo(organization: String, name: String, version: String) {
   override def toString = s"${organization} # ${name} # ${version}"
@@ -121,8 +114,7 @@ object LicenseReport {
   }
 
   def makeReport(
-      module: IvySbt#Module,
-      depRes: DependencyResolution,
+      updateReport: UpdateReport,
       configs: Set[String],
       licenseSelection: Seq[LicenseCategory],
       overrides: DepModuleInfo => Option[LicenseInfo],
@@ -130,14 +122,6 @@ object LicenseReport {
       originatingModule: DepModuleInfo,
       log: Logger
   ): LicenseReport = {
-    // Ideally we should be using just standard sbt update task however due to
-    // https://github.com/coursier/coursier/issues/1790 coursier cannot correctly
-    // resolve license information from Ivy modules, so instead we just use
-    // IvyDependencyResolution directly
-    val updateReport = resolve(depRes, module, log) match {
-      case Left(exception)     => throw exception.resolveException
-      case Right(updateReport) => updateReport
-    }
     makeReportImpl(updateReport, configs, licenseSelection, overrides, exclusions, originatingModule, log)
   }
 
@@ -318,22 +302,6 @@ object LicenseReport {
     }
   }
 
-  // TODO: Use https://github.com/sbt/librarymanagement/pull/428 instead when merged and released
-  private def moduleKey(m: ModuleID) = (m.organization, m.name, m.revision)
-
-  private def allModuleReports(configurations: Vector[ConfigurationReport]): Vector[ModuleReport] =
-    configurations.flatMap(_.modules).groupBy(mR => moduleKey(mR.module)).toVector map { case (_, v) =>
-      v reduceLeft { (agg, x) =>
-        agg.withConfigurations(
-          (agg.configurations, x.configurations) match {
-            case (v, _) if v.isEmpty  => x.configurations
-            case (ac, v) if v.isEmpty => ac
-            case (ac, xc)             => ac ++ xc
-          }
-        )
-      }
-    }
-
   private def getLicenses(
       report: UpdateReport,
       configs: Set[String] = Set.empty,
@@ -342,7 +310,7 @@ object LicenseReport {
       log: Logger
   ): Seq[DepLicense] = {
     for {
-      dep <- allModuleReports(report.configurations)
+      dep <- report.allModuleReports
       report <- pickLicenseForDep(dep, configs, categories, originatingModule, log)
     } yield report
   }
@@ -380,16 +348,5 @@ object LicenseReport {
       }
     // TODO - Filter for a real report...
     LicenseReport(licenses, reportWithReplacedPropertyReferences)
-  }
-
-  private def resolve(
-      depRes: DependencyResolution,
-      module: IvySbt#Module,
-      log: Logger
-  ): Either[UnresolvedWarning, UpdateReport] = {
-    val uc = UpdateConfiguration().withLogging(UpdateLogging.Quiet)
-    val uwc = UnresolvedWarningConfiguration()
-
-    depRes.update(module, uc, uwc, log)
   }
 }
