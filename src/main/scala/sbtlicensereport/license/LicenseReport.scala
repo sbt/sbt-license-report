@@ -338,14 +338,13 @@ object LicenseReport {
       }
     }
 
-
     val licenses =
       getLicenses(reportWithReplacedPropertyReferences, configs, categories, originatingModule, log) filterNot { dep =>
         exclusions(dep.module).getOrElse(false)
       } map { depLicense =>
         overrides(depLicense.module) match {
           case Some(licenseInfo) => depLicense.copy(license = licenseInfo)
-          case _       => depLicense
+          case _                 => depLicense
         }
       }
     // TODO - Filter for a real report...
