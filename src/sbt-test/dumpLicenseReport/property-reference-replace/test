@@ -3,4 +3,3 @@ $ exists target/license-reports/example-licenses.md
 $ exists target/license-reports/example-licenses.html
 $ exists target/license-reports/example-licenses.csv
 > check
-
