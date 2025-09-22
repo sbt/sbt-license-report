@@ -5,7 +5,7 @@ import java.net.{ MalformedURLException, URISyntaxException }
 import java.io.File
 import scala.util.control.NonFatal
 import scala.xml.{ Elem, XML }
-import sbt.*
+import sbt._
 import sbt.io.Using
 
 case class DepModuleInfo(organization: String, name: String, version: String) {
