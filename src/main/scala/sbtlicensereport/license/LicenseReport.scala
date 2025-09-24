@@ -1,8 +1,10 @@
 package sbtlicensereport
 package license
 
-import java.net.URISyntaxException
-
+import java.net.{ MalformedURLException, URISyntaxException }
+import java.io.File
+import scala.util.control.NonFatal
+import scala.xml.{ Elem, XML }
 import sbt._
 import sbt.io.Using
 
@@ -152,6 +154,126 @@ object LicenseReport {
     }
   }
 
+  /**
+   * Tries to replace property references if present in the pom/ivy.xml files.
+   *
+   * Example: `https://example.org/\${project.artifactId}`
+   *
+   * If there are replecements in the files, the reference wil be replaced.
+   *
+   * `https://example.org/replacement`
+   *
+   * Otherwise, an empty string will be put in its place:
+   *
+   * `https://example.org/`
+   *
+   * @param dep
+   *   ModuleReport object that represent the dependency to be checked for property references
+   * @param log
+   *   logger for errors
+   * @return
+   *   a ModuleReport object with replaced property references
+   */
+  private def replacePropertyReferences(dep: ModuleReport, log: Logger): ModuleReport = {
+
+    /**
+     * Looks for suitable replacements for the given property references.
+     *
+     * @param artifactFile
+     *   file of the dependency we want to find replacements for
+     * @param keys
+     *   set of property references
+     * @return
+     *   Map where each entry has a property reference as key and its replacement as value. Example:
+     *   `"\${project.artifactId}" -> "replacement"`
+     */
+    def findReplacements(artifactFile: File, keys: Set[String]): Map[String, String] = {
+      val xmlFile: Option[File] = {
+        val pom = new File(artifactFile.getPath.replace(".jar", ".pom"))
+        val originals =
+          artifactFile.getParentFile.getParentFile.listFiles((_, name) => name.endsWith(".original")).toSeq
+        val xmls = artifactFile.getParentFile.getParentFile.listFiles((_, name) => name.endsWith(".xml")).toSeq
+        Seq(pom) ++ originals ++ xmls
+      }.find(_.exists())
+
+      xmlFile match {
+        case Some(xmlFile) =>
+          val xml = XML.loadFile(xmlFile)
+
+          def extractValue(xml: Elem, key: String): String = {
+            val parts = key.split('.')
+            val rootMatches = xml \\ parts.head
+            val finalNode = parts.tail.foldLeft(rootMatches.headOption) {
+              case (Some(node), label) => (node \ label).headOption
+              case _ => {
+                log.warn(
+                  s"sbt-license-report: unable to find the value for property $key [${dep.module}]"
+                )
+                None
+              }
+            }
+
+            finalNode
+              .map(_.text.trim)
+              .filter(_.nonEmpty)
+              .getOrElse {
+                log.warn(
+                  s"sbt-license-report: unable to find the value for property $key [${dep.module}]"
+                )
+                ""
+              }
+          }
+
+          keys.map { key =>
+            val value = extractValue(xml, key)
+            key -> value
+          }.toMap
+        case None => Map.empty
+      }
+    }
+
+    val pattern = "\\$\\{(.*?)}".r
+    val licenses = dep.licenses
+    val homepage = dep.homepage
+    try {
+      val hasReferences =
+        pattern.findFirstIn(licenses.toString()).isDefined || pattern.findFirstIn(homepage.getOrElse("")).isDefined
+
+      if (hasReferences) {
+        dep.artifacts.iterator
+          .flatMap { case (_, artifactFile) =>
+            val licenseReferences = pattern.findAllMatchIn(licenses.toString()).map(_.group(1)).toSet
+            val homepageReferences = pattern.findAllMatchIn(homepage.getOrElse("")).map(_.group(1)).toSet
+            val replacements = findReplacements(artifactFile, licenseReferences ++ homepageReferences)
+
+            // Gets a copy of licenses with replaced property references
+            val resolvedLicenses = licenses.map(l => {
+              def replace(str: String): String =
+                pattern.replaceAllIn(str, m => replacements.getOrElse(m.group(1), m.matched))
+
+              l.copy(_1 = replace(l._1), _2 = l._2.map(replace))
+            })
+            // Gets a copy of homepage with replaced property references
+            val resolvedHomepage =
+              homepage.map(h => pattern.replaceAllIn(h, m => replacements.getOrElse(m.group(1), m.matched)))
+
+            Some(dep.withLicenses(resolvedLicenses).withHomepage(resolvedHomepage))
+          }
+          .toSeq
+          .headOption
+          .getOrElse(dep)
+      } else {
+        dep
+      }
+    } catch {
+      case NonFatal(_) =>
+        log.warn(
+          s"sbt-license-report: something went wrong in replacing property references for dependency [${dep.module}]"
+        )
+        dep
+    }
+  }
+
   /** Picks a single license (or none) for this dependency. */
   private def pickLicenseForDep(
       dep: ModuleReport,
@@ -173,6 +295,12 @@ object LicenseReport {
         } catch {
           case _: URISyntaxException =>
             log.warn(s"sbt-license-report: dependency [${dep.module}] has malformed homepage url [$string]")
+            None
+          case _: MalformedURLException =>
+            log.warn(s"sbt-license-report: dependency [${dep.module}] has malformed homepage url [$string]")
+            None
+          case NonFatal(_) =>
+            log.warn(s"sbt-license-report: error in extracting homepage url [$string] for dependency [${dep.module}]")
             None
         }
       })
@@ -210,15 +338,30 @@ object LicenseReport {
       originatingModule: DepModuleInfo,
       log: Logger
   ): LicenseReport = {
-    val licenses = getLicenses(report, configs, categories, originatingModule, log) filterNot { dep =>
-      exclusions(dep.module).getOrElse(false)
-    } map { l =>
-      overrides(l.module) match {
-        case Some(o) => l.copy(license = o)
-        case _       => l
+    val reportWithReplacedPropertyReferences = report.withConfigurations {
+      report.configurations.map { c =>
+        val newDetails = c.details.map { d =>
+          d.withModules(d.modules.map(replacePropertyReferences(_, log)))
+        }
+
+        val newModules =
+          if (newDetails.nonEmpty) newDetails.flatMap(_.modules)
+          else c.modules.map(replacePropertyReferences(_, log))
+
+        c.withDetails(newDetails).withModules(newModules)
       }
     }
+
+    val licenses =
+      getLicenses(reportWithReplacedPropertyReferences, configs, categories, originatingModule, log) filterNot { dep =>
+        exclusions(dep.module).getOrElse(false)
+      } map { depLicense =>
+        overrides(depLicense.module) match {
+          case Some(licenseInfo) => depLicense.copy(license = licenseInfo)
+          case _                 => depLicense
+        }
+      }
     // TODO - Filter for a real report...
-    LicenseReport(licenses, report)
+    LicenseReport(licenses, reportWithReplacedPropertyReferences)
   }
 }
