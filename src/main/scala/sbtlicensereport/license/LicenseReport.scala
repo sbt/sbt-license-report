@@ -316,15 +316,32 @@ object LicenseReport {
     }
   }
 
+  // TODO: Remove when https://github.com/sbt/librarymanagement/pull/547 is merged so we can properly filter
+  private def moduleKey(m: ModuleID) = (m.organization, m.name, m.revision)
+
+  private def allModuleReports(configurations: Vector[ConfigurationReport]): Vector[ModuleReport] =
+    configurations.flatMap(_.modules).groupBy(mR => moduleKey(mR.module)).toVector map { case (_, v) =>
+      v reduceLeft { (agg, x) =>
+        agg.withConfigurations(
+          (agg.configurations, x.configurations) match {
+            case (v, _) if v.isEmpty  => x.configurations
+            case (ac, v) if v.isEmpty => ac
+            case (ac, xc)             => ac ++ xc
+          }
+        )
+      }
+    }
+
   private def getLicenses(
       report: UpdateReport,
-      configs: Set[String] = Set.empty,
-      categories: Seq[LicenseCategory] = LicenseCategory.all,
+      configs: Set[String],
+      categories: Seq[LicenseCategory],
       originatingModule: DepModuleInfo,
       log: Logger
   ): Seq[DepLicense] = {
+    val relevantConfigurations = report.configurations.filter(c => configs.contains(c.configuration.name))
     for {
-      dep <- report.allModuleReports
+      dep <- allModuleReports(relevantConfigurations)
       report <- pickLicenseForDep(dep, configs, categories, originatingModule, log)
     } yield report
   }
