@@ -205,7 +205,7 @@ object LicenseReport {
             val rootMatches = xml \\ parts.head
             val finalNode = parts.tail.foldLeft(rootMatches.headOption) {
               case (Some(node), label) => (node \ label).headOption
-              case _ => {
+              case _                   => {
                 log.warn(
                   s"sbt-license-report: unable to find the value for property $key [${dep.module}]"
                 )
