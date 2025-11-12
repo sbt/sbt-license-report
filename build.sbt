@@ -2,7 +2,7 @@ lazy val lang3 = "org.apache.commons" % "commons-text" % "1.14.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
 val scala212 = "2.12.20"
-val scala3 = "3.7.3"
+val scala3 = "3.7.4"
 
 pluginCrossBuild / sbtVersion := {
   scalaBinaryVersion.value match {
