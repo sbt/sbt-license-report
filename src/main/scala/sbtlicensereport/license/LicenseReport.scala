@@ -132,23 +132,24 @@ object LicenseReport {
   private def pickLicense(
       categories: Seq[LicenseCategory]
   )(licenses: Vector[(String, Option[String])]): LicenseInfo = {
-    // Even though the url is optional this field seems to always exist
-    val licensesWithUrls = licenses.collect { case (name, Some(url)) => (name, url) }
-    if (licensesWithUrls.isEmpty) {
+    // Some packages have a license name but no url which doesn't mean they have no license
+    // i.e. WebJars that inherit license from their original package
+    val licensesWithOptionalUrls = licenses.collect { case (name, url) => (name, url.getOrElse("")) }
+    if (licensesWithOptionalUrls.isEmpty) {
       LicenseInfo(LicenseCategory.NoneSpecified, "", "")
     } else {
       // We look for a license matching the category in the order they are defined.
       // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
       categories
         .flatMap(category =>
-          licensesWithUrls.collectFirst {
+          licensesWithOptionalUrls.collectFirst {
             case (name, url) if category.unapply(name) =>
               LicenseInfo(category, name, url)
           }
         )
         .headOption
         .getOrElse {
-          val license = licensesWithUrls(0)
+          val license = licensesWithOptionalUrls(0)
           LicenseInfo(LicenseCategory.Unrecognized, license._1, license._2)
         }
     }
