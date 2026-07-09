@@ -1,19 +1,19 @@
 lazy val lang3 = "org.apache.commons" % "commons-text" % "1.14.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
-val scala212 = "2.12.20"
-val scala3 = "3.7.4"
+val scala212 = "2.12.21"
+val scala3 = "3.8.4"
 
 pluginCrossBuild / sbtVersion := {
   scalaBinaryVersion.value match {
     case "2.12" =>
-      (pluginCrossBuild / sbtVersion).value
+      "1.12.9"
     case _ =>
-      "2.0.0-RC6"
+      (pluginCrossBuild / sbtVersion).value
   }
 }
 
-ThisBuild / scalaVersion := scala212
+ThisBuild / scalaVersion := scala3
 ThisBuild / crossScalaVersions := Seq(scala212, scala3)
 organization := "com.github.sbt"
 name := "sbt-license-report"
@@ -27,7 +27,7 @@ TaskKey[Unit]("testAll") := {
   if (scalaBinaryVersion.value == "3") {
     Def
       .sequential(
-        Test / test,
+        (Test / test).toTask(""),
         Def.task(
           // TODO enable test
           streams.value.log.warn("skip sbt 2.x scripted tests")
@@ -37,7 +37,7 @@ TaskKey[Unit]("testAll") := {
   } else {
     Def
       .sequential(
-        Test / test,
+        (Test / test).toTask(""),
         scripted.toTask("")
       )
       .value
