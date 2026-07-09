@@ -7,13 +7,13 @@ val scala3 = "3.8.4"
 pluginCrossBuild / sbtVersion := {
   scalaBinaryVersion.value match {
     case "2.12" =>
-      "1.12.9"
-    case _ =>
       (pluginCrossBuild / sbtVersion).value
+    case _ =>
+      "2.0.1"
   }
 }
 
-ThisBuild / scalaVersion := scala3
+ThisBuild / scalaVersion := scala212
 ThisBuild / crossScalaVersions := Seq(scala212, scala3)
 organization := "com.github.sbt"
 name := "sbt-license-report"
@@ -27,7 +27,7 @@ TaskKey[Unit]("testAll") := {
   if (scalaBinaryVersion.value == "3") {
     Def
       .sequential(
-        (Test / test).toTask(""),
+        (Test / test),
         Def.task(
           // TODO enable test
           streams.value.log.warn("skip sbt 2.x scripted tests")
@@ -37,7 +37,7 @@ TaskKey[Unit]("testAll") := {
   } else {
     Def
       .sequential(
-        (Test / test).toTask(""),
+        (Test / test),
         scripted.toTask("")
       )
       .value
@@ -113,7 +113,8 @@ ThisBuild / githubWorkflowJavaVersions := Seq(
   JavaSpec.temurin("8"),
   JavaSpec.temurin("11"),
   JavaSpec.temurin("17"),
-  JavaSpec.temurin("21")
+  JavaSpec.temurin("21"),
+  JavaSpec.temurin("25"),
 )
 
 ThisBuild / githubWorkflowBuildMatrixExclusions += MatrixExclude(Map("java" -> "temurin@8", "os" -> "macos-latest"))
