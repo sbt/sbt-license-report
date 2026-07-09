@@ -27,7 +27,7 @@ TaskKey[Unit]("testAll") := {
   if (scalaBinaryVersion.value == "3") {
     Def
       .sequential(
-        (Test / test),
+        Test / test,
         Def.task(
           // TODO enable test
           streams.value.log.warn("skip sbt 2.x scripted tests")
@@ -37,7 +37,7 @@ TaskKey[Unit]("testAll") := {
   } else {
     Def
       .sequential(
-        (Test / test),
+        Test / test,
         scripted.toTask("")
       )
       .value
