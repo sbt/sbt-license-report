@@ -100,11 +100,11 @@ jobs:
         run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
       - shell: bash
-        if: {{ matrix.java }} != 'temurin@8' && {{ matrix.java }} != 'temurin@11'
+        if: ${{ matrix.java != 'temurin@8' &&  matrix.java != 'temurin@11' }}
         run: sbt '++ ${{ matrix.scala }}' '+ testAll'
 
       - shell: bash
-        if: {{ matrix.java }} == 'temurin@8' || {{ matrix.java }} == 'temurin@11'
+        if: ${{ matrix.java == 'temurin@8' || matrix.java == 'temurin@11' }}
         run: sbt '++ ${{ matrix.scala }}' 'testAll'
 
       - name: Compress target directories
