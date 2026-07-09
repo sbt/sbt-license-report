@@ -10,6 +10,7 @@ lazy val one = project
       libraryDependencies += "junit"                      % "junit"            % "4.12" % "test"
     )
   )
+  .settings(OutputPathCompat.settings)
 
 lazy val two = project
   .in(file("two"))
@@ -18,6 +19,7 @@ lazy val two = project
       libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.4.6"
     )
   )
+  .settings(OutputPathCompat.settings)
 
 TaskKey[Unit]("check") := {
   val contents = sbt.IO.read(target.value / "license-reports" / "example-licenses.md")

@@ -24,24 +24,12 @@ scriptedLaunchOpts += s"-Dplugin.version=${version.value}"
 ThisBuild / githubWorkflowScalaVersions := Seq(scalaVersion.value)
 
 TaskKey[Unit]("testAll") := {
-  if (scalaBinaryVersion.value == "3") {
-    Def
-      .sequential(
-        Test / test,
-        Def.task(
-          // TODO enable test
-          streams.value.log.warn("skip sbt 2.x scripted tests")
-        )
-      )
-      .value
-  } else {
     Def
       .sequential(
         Test / test,
         scripted.toTask("")
       )
       .value
-  }
 }
 
 // publishing info
