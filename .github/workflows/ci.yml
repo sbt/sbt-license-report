@@ -42,14 +42,14 @@ jobs:
 
       - name: Configure pagefile for Windows
         if: contains(runner.os, 'windows')
-        uses: al-cheb/configure-pagefile-action@v1.4
+        uses: al-cheb/configure-pagefile-action@v1.5
         with:
           minimum-size: 2GB
           maximum-size: 8GB
           disk-root: 'C:'
 
       - name: Checkout current branch (full)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -98,24 +98,24 @@ jobs:
 
       - name: Check that workflows are up to date
         shell: bash
-        run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
+        run: sbt '++ ${{ matrix.scala }}; githubWorkflowCheck'
 
       - name: Build project (only SBT 1.x)
         if: matrix.java == 'temurin@8' || matrix.java == 'temurin@11'
         shell: bash
-        run: sbt '++ ${{ matrix.scala }}' testAll
+        run: sbt '++ ${{ matrix.scala }}; testAll'
 
       - name: Build project (cross build on SBT 1.x and 2.x)
         if: matrix.java != 'temurin@8' && matrix.java != 'temurin@11'
         shell: bash
-        run: sbt '++ ${{ matrix.scala }}' '+ testAll'
+        run: sbt '++ ${{ matrix.scala }}; + testAll'
 
       - name: Compress target directories
         shell: bash
         run: tar cf targets.tar target project/target
 
       - name: Upload target directories
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
           path: targets.tar
@@ -137,14 +137,14 @@ jobs:
 
       - name: Configure pagefile for Windows
         if: contains(runner.os, 'windows')
-        uses: al-cheb/configure-pagefile-action@v1.4
+        uses: al-cheb/configure-pagefile-action@v1.5
         with:
           minimum-size: 2GB
           maximum-size: 8GB
           disk-root: 'C:'
 
       - name: Checkout current branch (full)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -192,7 +192,7 @@ jobs:
         uses: sbt/setup-sbt@v1
 
       - name: Download target directories (2.12.21)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: target-${{ matrix.os }}-2.12.21-${{ matrix.java }}
 
