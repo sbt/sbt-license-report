@@ -77,7 +77,7 @@ scalacOptions ++= {
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(
     List("testAll"),
-    name = Some("Build project (only SB 1.x)"),
+    name = Some("Build project (only SBT 1.x)"),
     cond = Some("matrix.java == 'temurin@8' || matrix.java == 'temurin@11'")
   ),
   WorkflowStep.Sbt(

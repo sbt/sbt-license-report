@@ -100,7 +100,7 @@ jobs:
         shell: bash
         run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
-      - name: Build project (only SB 1.x)
+      - name: Build project (only SBT 1.x)
         if: matrix.java == 'temurin@8' || matrix.java == 'temurin@11'
         shell: bash
         run: sbt '++ ${{ matrix.scala }}' testAll
