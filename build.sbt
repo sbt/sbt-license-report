@@ -24,12 +24,12 @@ scriptedLaunchOpts += s"-Dplugin.version=${version.value}"
 ThisBuild / githubWorkflowScalaVersions := Seq(scalaVersion.value)
 
 TaskKey[Unit]("testAll") := {
-    Def
-      .sequential(
-        Test / test,
-        scripted.toTask("")
-      )
-      .value
+  Def
+    .sequential(
+      Test / test,
+      scripted.toTask("")
+    )
+    .value
 }
 
 // publishing info
@@ -112,8 +112,8 @@ ThisBuild / githubWorkflowJavaVersions := Seq(
   JavaSpec.temurin("17"), // The `publish` job uses the *first* of these
   JavaSpec.temurin("21"),
   JavaSpec.temurin("25"),
-  JavaSpec.temurin("8"),  // only for SBT 1.x
-  JavaSpec.temurin("11"), // only for SBT 1.x
+  JavaSpec.temurin("8"), // only for SBT 1.x
+  JavaSpec.temurin("11") // only for SBT 1.x
 )
 
 ThisBuild / githubWorkflowBuildMatrixExclusions += MatrixExclude(Map("java" -> "temurin@8", "os" -> "macos-latest"))
