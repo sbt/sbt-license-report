@@ -28,7 +28,7 @@ lazy val three = project
   .settings(
     List(
       libraryDependencies += "com.google.guava" % "guava" % "31.1-jre"
-    ),
+    )
   )
   .settings(OutputPathCompat.settings)
 
@@ -38,7 +38,6 @@ lazy val root = project
     one,
     two
   )
-
 
 TaskKey[Unit]("check") := {
   if (thisProjectRef.value.project == "root") {
