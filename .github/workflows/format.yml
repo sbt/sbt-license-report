@@ -3,8 +3,6 @@ name: Scalafmt
 permissions: {}
 
 on:
-  push:
-    branches: [ '**' ]
   pull_request:
     branches: ['**']
 
@@ -22,4 +20,4 @@ jobs:
       - name: Check project is formatted
         uses: jrouly/scalafmt-native-action@v5
         with:
-          arguments: '--list --mode diff-ref=2f2fa67a 1>&2'
+          arguments: '--list --mode diff-ref=origin/main'
