@@ -3,6 +3,8 @@ name: Scalafmt
 permissions: {}
 
 on:
+  push:
+    branches: [ '**' ]
   pull_request:
     branches: ['**']
 
