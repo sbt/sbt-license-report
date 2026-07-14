@@ -12,6 +12,9 @@ lazy val one = project
   )
   .settings(OutputPathCompat.settings)
 
+
+
+
 lazy val two = project
   .in(file("two"))
   .settings(
