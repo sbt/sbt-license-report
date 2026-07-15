@@ -28,10 +28,10 @@ jobs:
           - temurin@17
           - temurin@21
           - temurin@25
-          - temurin@8
-          - temurin@11
+          - zulu@8
+          - zulu@11
         exclude:
-          - java: temurin@8
+          - java: zulu@8
             os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
@@ -77,19 +77,19 @@ jobs:
           java-version: 25
           cache: sbt
 
-      - name: Setup Java (temurin@8)
-        if: matrix.java == 'temurin@8'
+      - name: Setup Java (zulu@8)
+        if: matrix.java == 'zulu@8'
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 8
           cache: sbt
 
-      - name: Setup Java (temurin@11)
-        if: matrix.java == 'temurin@11'
+      - name: Setup Java (zulu@11)
+        if: matrix.java == 'zulu@11'
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 11
           cache: sbt
 
@@ -100,13 +100,13 @@ jobs:
         shell: bash
         run: sbt '++ ${{ matrix.scala }}; githubWorkflowCheck'
 
-      - name: Build project (only SBT 1.x)
-        if: matrix.java == 'temurin@8' || matrix.java == 'temurin@11'
+      - name: Build project (only sbt 1.x)
+        if: matrix.java == 'zulu@8' || matrix.java == 'zulu@11'
         shell: bash
         run: sbt '++ ${{ matrix.scala }}; testAll'
 
-      - name: Build project (cross build on SBT 1.x and 2.x)
-        if: matrix.java != 'temurin@8' && matrix.java != 'temurin@11'
+      - name: Build project (cross build on sbt 1.x and 2.x)
+        if: matrix.java != 'zulu@8' && matrix.java != 'zulu@11'
         shell: bash
         run: sbt '++ ${{ matrix.scala }}; + testAll'
 
@@ -172,19 +172,19 @@ jobs:
           java-version: 25
           cache: sbt
 
-      - name: Setup Java (temurin@8)
-        if: matrix.java == 'temurin@8'
+      - name: Setup Java (zulu@8)
+        if: matrix.java == 'zulu@8'
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 8
           cache: sbt
 
-      - name: Setup Java (temurin@11)
-        if: matrix.java == 'temurin@11'
+      - name: Setup Java (zulu@11)
+        if: matrix.java == 'zulu@11'
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: zulu
           java-version: 11
           cache: sbt
 

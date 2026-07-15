@@ -9,7 +9,7 @@ pluginCrossBuild / sbtVersion := {
     case "2.12" =>
       (pluginCrossBuild / sbtVersion).value
     case _ =>
-      "2.0.1"
+      "2.0.2"
   }
 }
 
@@ -68,6 +68,8 @@ scalacOptions ++= {
     val log = sLog.value
     log.info("Running in CI, enabling Scala2 optimizer")
     Seq(
+      "-Xsource:3",
+      "-release:8",
       "-opt-inline-from:<sources>",
       "-opt:l:inline"
     )
@@ -77,13 +79,13 @@ scalacOptions ++= {
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(
     List("testAll"),
-    name = Some("Build project (only SBT 1.x)"),
-    cond = Some("matrix.java == 'temurin@8' || matrix.java == 'temurin@11'")
+    name = Some("Build project (only sbt 1.x)"),
+    cond = Some("matrix.java == 'zulu@8' || matrix.java == 'zulu@11'")
   ),
   WorkflowStep.Sbt(
     List("+ testAll"),
-    name = Some("Build project (cross build on SBT 1.x and 2.x)"),
-    cond = Some("matrix.java != 'temurin@8' && matrix.java != 'temurin@11'")
+    name = Some("Build project (cross build on sbt 1.x and 2.x)"),
+    cond = Some("matrix.java != 'zulu@8' && matrix.java != 'zulu@11'")
   )
 )
 
@@ -108,12 +110,14 @@ ThisBuild / githubWorkflowPublish := Seq(
 
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest", "windows-latest")
 
+ThisBuild / githubWorkflowPublishJavaVersion := JavaSpec.temurin("17")
+
 ThisBuild / githubWorkflowJavaVersions := Seq(
-  JavaSpec.temurin("17"), // The `publish` job uses the *first* of these
+  JavaSpec.temurin("17"),
   JavaSpec.temurin("21"),
   JavaSpec.temurin("25"),
-  JavaSpec.temurin("8"), // only for SBT 1.x
-  JavaSpec.temurin("11") // only for SBT 1.x
+  JavaSpec.zulu("8"), // only for SBT 1.x
+  JavaSpec.zulu("11") // only for SBT 1.x
 )
 
-ThisBuild / githubWorkflowBuildMatrixExclusions += MatrixExclude(Map("java" -> "temurin@8", "os" -> "macos-latest"))
+ThisBuild / githubWorkflowBuildMatrixExclusions += MatrixExclude(Map("java" -> "zulu@8", "os" -> "macos-latest"))
