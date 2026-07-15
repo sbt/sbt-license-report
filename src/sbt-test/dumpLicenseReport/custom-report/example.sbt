@@ -12,8 +12,10 @@ licenseReportTypes := Seq(MarkDown)
 
 licenseReportNotes := { case _ => "Default Notes" }
 
+import sbtcompat.PluginCompat.*
+
 // Adds a new custom report
-licenseReportConfigurations +=
+licenseReportConfigurations += Def.uncached {
   LicenseReportConfiguration(
     "test-config",
     Seq(Html),
@@ -24,6 +26,7 @@ licenseReportConfigurations +=
     None,
     Seq(Column.Category, Column.License, Column.Dependency)
   )
+}
 
 val check = taskKey[Unit]("check the license report.")
 

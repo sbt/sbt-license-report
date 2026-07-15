@@ -1,15 +1,15 @@
 lazy val lang3 = "org.apache.commons" % "commons-text" % "1.14.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
-val scala212 = "2.12.20"
-val scala3 = "3.7.4"
+val scala212 = "2.12.21"
+val scala3 = "3.8.4"
 
 pluginCrossBuild / sbtVersion := {
   scalaBinaryVersion.value match {
     case "2.12" =>
       (pluginCrossBuild / sbtVersion).value
     case _ =>
-      "2.0.0-RC6"
+      "2.0.1"
   }
 }
 
@@ -24,24 +24,12 @@ scriptedLaunchOpts += s"-Dplugin.version=${version.value}"
 ThisBuild / githubWorkflowScalaVersions := Seq(scalaVersion.value)
 
 TaskKey[Unit]("testAll") := {
-  if (scalaBinaryVersion.value == "3") {
-    Def
-      .sequential(
-        Test / test,
-        Def.task(
-          // TODO enable test
-          streams.value.log.warn("skip sbt 2.x scripted tests")
-        )
-      )
-      .value
-  } else {
-    Def
-      .sequential(
-        Test / test,
-        scripted.toTask("")
-      )
-      .value
-  }
+  Def
+    .sequential(
+      Test / test,
+      scripted.toTask("")
+    )
+    .value
 }
 
 // publishing info
@@ -76,7 +64,7 @@ scalacOptions ++= List(
 )
 
 scalacOptions ++= {
-  if (insideCI.value) {
+  if (insideCI.value && scalaBinaryVersion.value == "2.12") {
     val log = sLog.value
     log.info("Running in CI, enabling Scala2 optimizer")
     Seq(
@@ -86,7 +74,18 @@ scalacOptions ++= {
   } else Nil
 }
 
-ThisBuild / githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("+ testAll")))
+ThisBuild / githubWorkflowBuild := Seq(
+  WorkflowStep.Sbt(
+    List("testAll"),
+    name = Some("Build project (only SBT 1.x)"),
+    cond = Some("matrix.java == 'temurin@8' || matrix.java == 'temurin@11'")
+  ),
+  WorkflowStep.Sbt(
+    List("+ testAll"),
+    name = Some("Build project (cross build on SBT 1.x and 2.x)"),
+    cond = Some("matrix.java != 'temurin@8' && matrix.java != 'temurin@11'")
+  )
+)
 
 ThisBuild / githubWorkflowTargetTags ++= Seq("v*")
 ThisBuild / githubWorkflowPublishTargetBranches :=
@@ -110,10 +109,11 @@ ThisBuild / githubWorkflowPublish := Seq(
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest", "windows-latest")
 
 ThisBuild / githubWorkflowJavaVersions := Seq(
-  JavaSpec.temurin("8"),
-  JavaSpec.temurin("11"),
-  JavaSpec.temurin("17"),
-  JavaSpec.temurin("21")
+  JavaSpec.temurin("17"), // The `publish` job uses the *first* of these
+  JavaSpec.temurin("21"),
+  JavaSpec.temurin("25"),
+  JavaSpec.temurin("8"), // only for SBT 1.x
+  JavaSpec.temurin("11") // only for SBT 1.x
 )
 
 ThisBuild / githubWorkflowBuildMatrixExclusions += MatrixExclude(Map("java" -> "temurin@8", "os" -> "macos-latest"))

@@ -7,6 +7,7 @@ lazy val one = project
       libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.5.4"
     )
   )
+  .settings(OutputPathCompat.settings)
 
 lazy val two = project
   .in(file("two"))
@@ -15,6 +16,7 @@ lazy val two = project
       libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.5.4" % Test
     )
   )
+  .settings(OutputPathCompat.settings)
 
 def countOccurrences(src: String, tgt: String): Int =
   src.sliding(tgt.length).count(window => window == tgt)

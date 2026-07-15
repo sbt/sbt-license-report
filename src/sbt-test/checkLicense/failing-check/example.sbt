@@ -5,11 +5,13 @@ libraryDependencies += "junit"                      % "junit"            % "4.12
 
 licenseCheckAllow := Nil
 
-TaskKey[Unit]("check") := {
-  licenseCheck.result.value match {
-    case Inc(inc: Incomplete) =>
+import sbtcompat.PluginCompat.*
+
+TaskKey[Unit]("check") := Def.uncached {
+  licenseCheck.result.value.toEither match {
+    case Left(_: Incomplete) =>
       println("licenseCheck failed as expected")
-    case Value(_) =>
+    case Right(_) =>
       sys.error("Expect licenseCheck to fail")
   }
 }
