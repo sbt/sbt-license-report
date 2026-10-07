@@ -3,6 +3,7 @@ package license
 
 import java.net.{ MalformedURLException, URISyntaxException }
 import java.io.File
+import scala.annotation.tailrec
 import scala.util.control.NonFatal
 import scala.xml.{ Elem, XML }
 import sbt._
@@ -132,11 +133,12 @@ object LicenseReport {
   private def pickLicense(
       categories: Seq[LicenseCategory]
   )(licenses: Vector[(String, Option[String])]): LicenseInfo = {
-    // Even though the url is optional this field seems to always exist
-    val licensesWithUrls = licenses.collect { case (name, Some(url)) => (name, url) }
-    if (licensesWithUrls.isEmpty) {
+    if (licenses.isEmpty) {
       LicenseInfo(LicenseCategory.NoneSpecified, "", "")
     } else {
+      // A license without a url is still a license (i.e. WebJars only declare the license name), so we categorize by
+      // name and fall back to an empty url
+      val licensesWithUrls = licenses.map { case (name, url) => (name, url.getOrElse("")) }
       // We look for a license matching the category in the order they are defined.
       // i.e. the user selects the licenses they prefer to use, in order, if an artifact is dual-licensed (or more)
       categories
@@ -152,6 +154,42 @@ object LicenseReport {
           LicenseInfo(LicenseCategory.Unrecognized, license._1, license._2)
         }
     }
+  }
+
+  /**
+   * Fills in missing license urls by walking up the dependency chain (the callers of the dependency) looking for the
+   * closest artifact that declares the same license, by name, together with a url.
+   *
+   * Only the url is taken from the caller, the license itself always comes from the dependency, so a dependency which
+   * is licensed differently from the artifacts depending on it is never misreported.
+   */
+  private def resolveMissingLicenseUrls(
+      dep: ModuleReport,
+      modulesByKey: Map[(String, String, String), ModuleReport]
+  ): Vector[(String, Option[String])] = {
+    def findUrlInCallers(licenseName: String): Option[String] = {
+      @tailrec
+      def loop(modules: Vector[ModuleReport], visited: Set[(String, String, String)]): Option[String] =
+        if (modules.isEmpty) None
+        else {
+          val callers = modules
+            .flatMap(_.callers)
+            .map(caller => moduleKey(caller.caller))
+            .distinct
+            .filterNot(visited)
+            .flatMap(modulesByKey.get)
+          callers.flatMap(_.licenses).collectFirst {
+            case (name, Some(url)) if name.trim.equalsIgnoreCase(licenseName.trim) => url
+          } match {
+            case None => loop(callers, visited ++ callers.map(caller => moduleKey(caller.module)))
+            case url  => url
+          }
+        }
+
+      loop(Vector(dep), Set(moduleKey(dep.module)))
+    }
+
+    dep.licenses.map { case (name, url) => (name, url.orElse(findUrlInCallers(name))) }
   }
 
   /**
@@ -280,6 +318,7 @@ object LicenseReport {
       configs: Set[String],
       categories: Seq[LicenseCategory],
       originatingModule: DepModuleInfo,
+      modulesByKey: Map[(String, String, String), ModuleReport],
       log: Logger
   ): Option[DepLicense] = {
     val cs = dep.configurations
@@ -288,7 +327,7 @@ object LicenseReport {
     if (dep.evicted || filteredConfigs.isEmpty)
       None
     else {
-      val licenses = dep.licenses
+      val licenses = resolveMissingLicenseUrls(dep, modulesByKey)
       val homepage = dep.homepage.flatMap(string => {
         try {
           Some(new URI(string).toURL)
@@ -340,9 +379,11 @@ object LicenseReport {
       log: Logger
   ): Seq[DepLicense] = {
     val relevantConfigurations = report.configurations.filter(c => configs.contains(c.configuration.name))
+    val modules = allModuleReports(relevantConfigurations)
+    val modulesByKey = modules.map(m => moduleKey(m.module) -> m).toMap
     for {
-      dep <- allModuleReports(relevantConfigurations)
-      report <- pickLicenseForDep(dep, configs, categories, originatingModule, log)
+      dep <- modules
+      report <- pickLicenseForDep(dep, configs, categories, originatingModule, modulesByKey, log)
     } yield report
   }
 

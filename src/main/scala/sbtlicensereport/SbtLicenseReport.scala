@@ -88,7 +88,8 @@ object SbtLicenseReport extends AutoPlugin {
         val depExclusions = licenseDepExclusions.value.lift
         val originatingModule = DepModuleInfo(organization.value, name.value, version.value)
         license.LicenseReport.makeReport(
-          update.value,
+          // updateFull (unlike update) keeps the callers of each module, needed to resolve missing license urls
+          updateFull.value,
           licenseConfigurations.value,
           licenseSelection.value,
           overrides,
