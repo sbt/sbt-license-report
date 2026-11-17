@@ -105,7 +105,7 @@ case object Csv extends TargetLanguage {
   def blankLine(): String = ""
   def header1(msg: String): String = ""
   def tableHeader(notes: String, columns: String*): String = {
-    tableRow(notes, columns: _*)
+    tableRow(notes, columns*)
   }
   def tableRow(notes: String, columns: String*): String = {
     val all = columns :+ notes
@@ -145,7 +145,7 @@ case object ConfluenceWikiMarkup extends TargetLanguage {
   }
 
   /** Null handling trim utility function. */
-  private[this] def trim(in: String): String = {
+  private def trim(in: String): String = {
     Option(in).fold("") { string =>
       string.trim
     }

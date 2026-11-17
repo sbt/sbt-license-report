@@ -2,14 +2,14 @@ lazy val lang3 = "org.apache.commons" % "commons-text" % "1.15.0"
 lazy val repoSlug = "sbt/sbt-license-report"
 
 val scala212 = "2.12.21"
-val scala3 = "3.8.4"
+val scala3 = "3.9.0"
 
 pluginCrossBuild / sbtVersion := {
   scalaBinaryVersion.value match {
     case "2.12" =>
-      (pluginCrossBuild / sbtVersion).value
+      "1.13.1"
     case _ =>
-      "2.0.2"
+      "2.1.0"
   }
 }
 
@@ -64,12 +64,15 @@ scalacOptions ++= List(
 )
 
 scalacOptions ++= {
+  if (scalaBinaryVersion.value == "2.12") Seq("-Xsource:3", "-release:8")
+  else Nil
+}
+
+scalacOptions ++= {
   if (insideCI.value && scalaBinaryVersion.value == "2.12") {
     val log = sLog.value
     log.info("Running in CI, enabling Scala2 optimizer")
     Seq(
-      "-Xsource:3",
-      "-release:8",
       "-opt-inline-from:<sources>",
       "-opt:l:inline"
     )

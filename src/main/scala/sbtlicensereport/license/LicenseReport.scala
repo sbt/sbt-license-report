@@ -49,7 +49,7 @@ object LicenseReport {
         writer.write(msg.toString)
         // writer.newLine()
       }
-      f(println _)
+      f(println)
     }
   }
 
@@ -65,7 +65,7 @@ object LicenseReport {
       withPrintableFile(reportFile) { print =>
         print(language.documentStart(title, reportStyleRules))
         print(makeHeader(language))
-        print(language.tableHeader("Notes", config.licenseReportColumns.map(_.columnName): _*))
+        print(language.tableHeader("Notes", config.licenseReportColumns.map(_.columnName)*))
         val rendered = (ordered map { dep =>
           val notesRendered = notes(dep.module) getOrElse ""
           (
@@ -75,7 +75,7 @@ object LicenseReport {
         }).distinct
 
         for ((notes, rest) <- rendered) {
-          print(language.tableRow(notes, rest: _*))
+          print(language.tableRow(notes, rest*))
         }
         print(language.tableEnd)
         print(language.documentEnd())

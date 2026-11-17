@@ -78,7 +78,7 @@ object SbtLicenseReport extends AutoPlugin {
     updateLicenses.all(ScopeFilter(inAnyProject))
   }
 
-  override lazy val projectSettings: Seq[Setting[_]] =
+  override lazy val projectSettings: Seq[Setting[?]] =
     Seq(
       licenseReportTitle := s"${normalizedName.value}-licenses",
       updateLicenses := Def.uncached {
