@@ -8,7 +8,7 @@ case class LicenseCategory(name: String, synonyms: Seq[String] = Nil) {
   def unapply(license: String): Boolean = {
     val names = name +: synonyms
     names exists { n =>
-      license.toLowerCase(Locale.ROOT) contains n.toLowerCase(Locale.ROOT)
+      license.toLowerCase(Locale.ROOT) `contains` n.toLowerCase(Locale.ROOT)
     }
   }
 
